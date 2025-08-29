@@ -1,47 +1,46 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect } from "react";
+import { useStore } from "../lib/store";
+import { useAuth } from "../lib/auth-context";
 
 export default function AmbassadorDashboardPage() {
-  const [stats] = useState({
-    totalCreators: 156,
-    pendingContent: 23,
-    approvedContent: 342,
-    monthlyViews: 45230,
-  });
+  const { user } = useAuth();
+  const {
+    dashboardStats,
+    activities,
+    refreshDashboardStats,
+    members,
+    assets,
+    initializeData,
+    addMember,
+    approveAsset,
+  } = useStore();
 
-  const [recentActivities] = useState([
-    {
-      id: 1,
-      creator: "Sarah Johnson",
-      action: "Submitted new article",
-      time: "2 hours ago",
-      status: "pending",
-    },
-    {
-      id: 2,
-      creator: "Mike Chen",
-      action: "Updated video content",
-      time: "4 hours ago",
-      status: "approved",
-    },
-    {
-      id: 3,
-      creator: "Emma Davis",
-      action: "Created infographic",
-      time: "1 day ago",
-      status: "reviewed",
-    },
-    {
-      id: 4,
-      creator: "Alex Rodriguez",
-      action: "Joined as creator",
-      time: "2 days ago",
-      status: "active",
-    },
-  ]);
+  // Initialize data from database and refresh dashboard stats when component mounts
+  useEffect(() => {
+    initializeData();
+    const interval = setInterval(refreshDashboardStats, 30000); // Refresh every 30 seconds
+    return () => clearInterval(interval);
+  }, [initializeData, refreshDashboardStats]);
 
-  const [pendingInvitations] = useState([
+  // Get recent activities (last 10)
+  const recentActivities = activities
+    .sort(
+      (a, b) =>
+        new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime(),
+    )
+    .slice(0, 4)
+    .map((activity) => ({
+      id: activity.id,
+      creator: activity.memberName,
+      action: activity.description,
+      time: getRelativeTime(activity.timestamp),
+      status: activity.status,
+    }));
+
+  // Get pending invitations (mock data for now)
+  const pendingInvitations = [
     {
       id: 1,
       email: "dr.smith@university.edu",
@@ -54,7 +53,56 @@ export default function AmbassadorDashboardPage() {
       role: "Content Ambassador",
       sent: "1 week ago",
     },
-  ]);
+  ];
+
+  // Helper function to get relative time
+  function getRelativeTime(timestamp: string): string {
+    const now = new Date();
+    const time = new Date(timestamp);
+    const diffInSeconds = Math.floor((now.getTime() - time.getTime()) / 1000);
+
+    if (diffInSeconds < 60) return "Just now";
+    if (diffInSeconds < 3600)
+      return `${Math.floor(diffInSeconds / 60)} minutes ago`;
+    if (diffInSeconds < 86400)
+      return `${Math.floor(diffInSeconds / 3600)} hours ago`;
+    if (diffInSeconds < 604800)
+      return `${Math.floor(diffInSeconds / 86400)} days ago`;
+    return `${Math.floor(diffInSeconds / 604800)} weeks ago`;
+  }
+
+  // Demo functions to test database functionality
+  const handleAddNewCreator = () => {
+    const newCreatorData = {
+      role: "creator" as const,
+      name: `Test Creator ${Math.floor(Math.random() * 1000)}`,
+      email: `creator${Math.floor(Math.random() * 1000)}@test.edu`,
+      handle: `@creator${Math.floor(Math.random() * 1000)}`,
+      campus: "Test University",
+      languages: ["English"],
+      points: Math.floor(Math.random() * 100),
+      isActive: true,
+    };
+
+    addMember(newCreatorData);
+  };
+
+  const handleApproveFirstPendingAsset = () => {
+    const pendingAsset = assets.find((asset) => asset.status === "pending");
+    if (pendingAsset) {
+      const review = {
+        accuracy: 4,
+        context: 2,
+        citations: 4,
+        overall: 4,
+        notes: "Great content!",
+        reviewerId: String(user?.id) || "admin",
+        reviewedAt: new Date().toISOString(),
+      };
+
+      approveAsset(pendingAsset.id, review);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-blue-900 relative overflow-hidden">
@@ -95,7 +143,7 @@ export default function AmbassadorDashboardPage() {
                 Ambassador Dashboard
               </h1>
               <p className="text-slate-300 text-lg">
-                Welcome back, Dr. Ambassador
+                Welcome back, {user?.name || "Ambassador"}
               </p>
             </div>
           </div>
@@ -108,7 +156,7 @@ export default function AmbassadorDashboardPage() {
             <div className="flex items-center justify-between mb-4">
               <div className="text-2xl">👥</div>
               <div className="text-3xl font-bold text-amber-400">
-                {stats.totalCreators}
+                {dashboardStats.activeCreators}
               </div>
             </div>
             <h3 className="text-slate-300 font-semibold">Active Creators</h3>
@@ -119,7 +167,7 @@ export default function AmbassadorDashboardPage() {
             <div className="flex items-center justify-between mb-4">
               <div className="text-2xl">⏳</div>
               <div className="text-3xl font-bold text-amber-400">
-                {stats.pendingContent}
+                {dashboardStats.pendingReview}
               </div>
             </div>
             <h3 className="text-slate-300 font-semibold">Pending Review</h3>
@@ -130,7 +178,7 @@ export default function AmbassadorDashboardPage() {
             <div className="flex items-center justify-between mb-4">
               <div className="text-2xl">✅</div>
               <div className="text-3xl font-bold text-amber-400">
-                {stats.approvedContent}
+                {dashboardStats.approvedContent}
               </div>
             </div>
             <h3 className="text-slate-300 font-semibold">Approved Content</h3>
@@ -141,7 +189,7 @@ export default function AmbassadorDashboardPage() {
             <div className="flex items-center justify-between mb-4">
               <div className="text-2xl">📊</div>
               <div className="text-3xl font-bold text-amber-400">
-                {stats.monthlyViews.toLocaleString()}
+                {dashboardStats.monthlyViews.toLocaleString()}
               </div>
             </div>
             <h3 className="text-slate-300 font-semibold">Monthly Views</h3>
@@ -160,43 +208,61 @@ export default function AmbassadorDashboardPage() {
             </div>
 
             <div className="space-y-4">
-              {recentActivities.map((activity) => (
-                <div
-                  key={activity.id}
-                  className="flex items-center justify-between p-4 bg-slate-900/30 rounded-lg border border-slate-700/50 hover:border-amber-400/30 transition-all duration-200"
-                >
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2 mb-1">
-                      <span className="font-semibold text-slate-200">
-                        {activity.creator}
-                      </span>
-                      <span
-                        className={`px-2 py-1 text-xs rounded-full ${
-                          activity.status === "pending"
-                            ? "bg-yellow-900/50 text-yellow-400"
-                            : activity.status === "approved"
-                              ? "bg-green-900/50 text-green-400"
-                              : activity.status === "reviewed"
-                                ? "bg-blue-900/50 text-blue-400"
-                                : "bg-purple-900/50 text-purple-400"
-                        }`}
-                      >
-                        {activity.status}
-                      </span>
+              {recentActivities.length > 0 ? (
+                recentActivities.map((activity) => (
+                  <div
+                    key={activity.id}
+                    className="flex items-center justify-between p-4 bg-slate-900/30 rounded-lg border border-slate-700/50 hover:border-amber-400/30 transition-all duration-200"
+                  >
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2 mb-1">
+                        <span className="font-semibold text-slate-200">
+                          {activity.creator}
+                        </span>
+                        <span
+                          className={`px-2 py-1 text-xs rounded-full ${
+                            activity.status === "pending"
+                              ? "bg-yellow-900/50 text-yellow-400"
+                              : activity.status === "approved"
+                                ? "bg-green-900/50 text-green-400"
+                                : activity.status === "rejected"
+                                  ? "bg-red-900/50 text-red-400"
+                                  : activity.status === "active"
+                                    ? "bg-purple-900/50 text-purple-400"
+                                    : "bg-blue-900/50 text-blue-400"
+                          }`}
+                        >
+                          {activity.status}
+                        </span>
+                      </div>
+                      <p className="text-slate-400 text-sm">
+                        {activity.action}
+                      </p>
+                      <p className="text-slate-500 text-xs">{activity.time}</p>
                     </div>
-                    <p className="text-slate-400 text-sm">{activity.action}</p>
-                    <p className="text-slate-500 text-xs">{activity.time}</p>
+                    {activity.status === "pending" && (
+                      <button className="px-3 py-1 bg-amber-400/20 hover:bg-amber-400/30 text-amber-400 text-sm rounded-md transition-colors duration-200">
+                        Review
+                      </button>
+                    )}
                   </div>
-                  <button className="px-3 py-1 bg-amber-400/20 hover:bg-amber-400/30 text-amber-400 text-sm rounded-md transition-colors duration-200">
-                    Review
-                  </button>
+                ))
+              ) : (
+                <div className="text-center py-8">
+                  <p className="text-slate-400 text-sm">No recent activities</p>
                 </div>
-              ))}
+              )}
             </div>
 
-            <button className="w-full mt-4 py-2 text-amber-400 hover:text-amber-300 text-sm font-semibold transition-colors duration-200">
-              View All Activities →
-            </button>
+            <div className="mt-4 flex items-center justify-between">
+              <button className="py-2 text-amber-400 hover:text-amber-300 text-sm font-semibold transition-colors duration-200">
+                View All Activities →
+              </button>
+              <p className="text-xs text-slate-500">
+                Last updated:{" "}
+                {new Date(dashboardStats.lastUpdated).toLocaleTimeString()}
+              </p>
+            </div>
           </div>
 
           {/* Ambassador Actions */}
@@ -249,11 +315,17 @@ export default function AmbassadorDashboardPage() {
               </div>
 
               <div className="grid grid-cols-2 gap-3">
-                <button className="p-3 bg-gradient-to-r from-emerald-600/20 to-emerald-700/20 hover:from-emerald-600/30 hover:to-emerald-700/30 border border-emerald-500/30 text-emerald-400 rounded-lg transition-all duration-200 text-sm font-medium">
-                  📝 Review Content
+                <button
+                  onClick={handleApproveFirstPendingAsset}
+                  className="p-3 bg-gradient-to-r from-emerald-600/20 to-emerald-700/20 hover:from-emerald-600/30 hover:to-emerald-700/30 border border-emerald-500/30 text-emerald-400 rounded-lg transition-all duration-200 text-sm font-medium"
+                >
+                  📝 Approve Content
                 </button>
-                <button className="p-3 bg-gradient-to-r from-blue-600/20 to-blue-700/20 hover:from-blue-600/30 hover:to-blue-700/30 border border-blue-500/30 text-blue-400 rounded-lg transition-all duration-200 text-sm font-medium">
-                  👥 Manage Creators
+                <button
+                  onClick={handleAddNewCreator}
+                  className="p-3 bg-gradient-to-r from-blue-600/20 to-blue-700/20 hover:from-blue-600/30 hover:to-blue-700/30 border border-blue-500/30 text-blue-400 rounded-lg transition-all duration-200 text-sm font-medium"
+                >
+                  👥 Add Creator
                 </button>
                 <button className="p-3 bg-gradient-to-r from-indigo-600/20 to-indigo-700/20 hover:from-indigo-600/30 hover:to-indigo-700/30 border border-indigo-500/30 text-indigo-400 rounded-lg transition-all duration-200 text-sm font-medium">
                   📊 View Reports

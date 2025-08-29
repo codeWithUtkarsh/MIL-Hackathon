@@ -1,19 +1,21 @@
-import jwt from 'jsonwebtoken';
-import { User } from './database';
+// import jwt from 'jsonwebtoken';
+// import { User } from './database';
 
-const JWT_SECRET = process.env.JWT_SECRET || 'your-super-secret-jwt-key-change-this-in-production';
-const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || '7d';
+const JWT_SECRET =
+  process.env.JWT_SECRET ||
+  "your-super-secret-jwt-key-change-this-in-production";
+const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || "7d";
 
 export interface AuthTokenPayload {
   userId: number;
   email: string;
-  role: 'admin' | 'ambassador';
+  role: "admin" | "ambassador";
 }
 
 export interface AuthResponse {
   success: boolean;
   token?: string;
-  user?: Omit<User, 'password_hash'>;
+  user?: Omit<User, "password_hash">;
   message?: string;
 }
 
@@ -56,10 +58,12 @@ export function createErrorResponse(message: string): AuthResponse {
 }
 
 // Middleware function to extract token from Authorization header
-export function extractTokenFromHeader(authHeader: string | null): string | null {
+export function extractTokenFromHeader(
+  authHeader: string | null,
+): string | null {
   if (!authHeader) return null;
 
-  if (authHeader.startsWith('Bearer ')) {
+  if (authHeader.startsWith("Bearer ")) {
     return authHeader.substring(7);
   }
 
@@ -69,31 +73,31 @@ export function extractTokenFromHeader(authHeader: string | null): string | null
 // Client-side token storage utilities
 export const TokenStorage = {
   set: (token: string) => {
-    if (typeof window !== 'undefined') {
-      localStorage.setItem('auth_token', token);
+    if (typeof window !== "undefined") {
+      localStorage.setItem("auth_token", token);
     }
   },
 
   get: (): string | null => {
-    if (typeof window !== 'undefined') {
-      return localStorage.getItem('auth_token');
+    if (typeof window !== "undefined") {
+      return localStorage.getItem("auth_token");
     }
     return null;
   },
 
   remove: () => {
-    if (typeof window !== 'undefined') {
-      localStorage.removeItem('auth_token');
+    if (typeof window !== "undefined") {
+      localStorage.removeItem("auth_token");
     }
   },
 
   isValid: async (token: string): Promise<boolean> => {
     try {
-      const response = await fetch('/api/auth/verify', {
-        method: 'POST',
+      const response = await fetch("/api/auth/verify", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
         },
       });
 
@@ -111,7 +115,7 @@ export interface AuthUser {
   email: string;
   country: string;
   points: number;
-  role: 'admin' | 'ambassador';
+  role: "admin" | "ambassador";
   created_at: string;
   last_login?: string;
 }
