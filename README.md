@@ -27,12 +27,41 @@ npm run typecheck
 npm run lint
 ```
 
+## 🔐 Authentication
+
+### Demo Admin Users
+
+The app includes two pre-configured admin users:
+
+**Utkarsh Sharma**
+- Email: `utkarshkviim@gmail.com`
+- Password: `secure123`
+- Country: India
+- Points: 200
+
+**Farheen Imam**
+- Email: `farheenimam331@gmail.com`
+- Password: `secure123`
+- Country: Pakistan  
+- Points: 120
+
+### How to Login
+
+1. Click "Ambassador Sign In" on the home page
+2. Use one of the demo admin emails above
+3. Enter password: `secure123`
+4. Access the ambassador dashboard
+
+For detailed authentication documentation, see `AUTHENTICATION.md`.
+
 ## 📋 Features
 
 - **Multi-role System**: Creator, Ambassador, Reviewer, Admin roles with specific permissions
+- **Authentication System**: Secure login for ambassadors and admins
 - **Content Management**: Submit, review, and approve educational assets
 - **Event Tracking**: Ambassador event reporting with learning impact metrics
 - **Points System**: Automated points calculation and leaderboard
+- **User Management**: Pre-configured admin users with role-based access
 - **Data Persistence**: LocalStorage-based with import/export functionality
 - **Dark Mode**: System-aware theme switching
 - **Accessibility**: WCAG 2.1 AA compliant with keyboard navigation
@@ -211,6 +240,12 @@ npm run lint
 3. Deploy with default Next.js settings
 4. No environment variables required (all data in localStorage)
 
+**Note**: Current authentication is demo-only. For production:
+- Implement proper password hashing
+- Use secure database storage
+- Add server-side validation
+- Enable HTTPS and security headers
+
 ## 📦 Tech Stack
 
 - **Framework**: Next.js 14 (App Router)
@@ -226,7 +261,9 @@ npm run lint
 
 ## 🔒 Security Notes
 
-- No sensitive data in localStorage
+- **Demo Authentication**: Current auth system is for demonstration only
+- **Production Security**: Implement proper password hashing and server-side validation for production
+- No sensitive data in localStorage (except demo auth tokens)
 - API keys should use environment variables (if added)
 - Input validation on all forms
 - URL validation for links

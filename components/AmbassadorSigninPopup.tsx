@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useAuth } from "../lib/auth-context";
 
 interface AmbassadorSigninPopupProps {
   isOpen: boolean;
@@ -17,8 +18,8 @@ export default function AmbassadorSigninPopup({
     email: "",
     password: "",
   });
-  const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
+  const { login, isLoading } = useAuth();
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -32,29 +33,35 @@ export default function AmbassadorSigninPopup({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsLoading(true);
     setError("");
 
     try {
-      // Simulate API call - replace with actual authentication
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-
       // Basic validation
       if (!formData.email || !formData.password) {
-        throw new Error("Please fill in all fields");
+        setError("Please fill in all fields");
+        return;
       }
 
       if (!formData.email.includes("@")) {
-        throw new Error("Please enter a valid email address");
+        setError("Please enter a valid email address");
+        return;
       }
 
-      // Simulate successful authentication
-      console.log("Ambassador signing in:", formData.email);
-      onSuccess();
+      // Authenticate with the auth service
+      const response = await login(formData.email, formData.password);
+
+      if (response.success) {
+        console.log("Ambassador signed in successfully:", response.user?.name);
+        onSuccess();
+        // Reset form
+        setFormData({ email: "", password: "" });
+        setError("");
+      } else {
+        setError(response.message || "Authentication failed");
+      }
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Authentication failed");
-    } finally {
-      setIsLoading(false);
+      console.error("Login error:", err);
+      setError("An unexpected error occurred. Please try again.");
     }
   };
 
@@ -211,8 +218,8 @@ export default function AmbassadorSigninPopup({
               <p className="text-xs text-amber-400 flex items-center gap-2 relative">
                 <span className="animate-pulse">ℹ️</span>
                 <span>
-                  Ambassador accounts are invitation-only. Contact your
-                  administrator if you need access.
+                  Demo credentials: Use email from admin list with password
+                  "secure123"
                 </span>
               </p>
             </div>

@@ -1,21 +1,32 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import AmbassadorSigninPopup from "../components/AmbassadorSigninPopup";
 import CreatorSignupPopup from "../components/CreatorSignupPopup";
 import AmbassadorDashboardPage from "./ambassador-dashboard";
 import CreatorDashboardPage from "./creator-dashboard";
+import { useAuth } from "../lib/auth-context";
 
-export default function HomePage() {
+export default function Home() {
   const [showAmbassadorPopup, setShowAmbassadorPopup] = useState(false);
   const [showCreatorPopup, setShowCreatorPopup] = useState(false);
   const [showAmbassadorDashboard, setShowAmbassadorDashboard] = useState(false);
   const [showCreatorDashboard, setShowCreatorDashboard] = useState(false);
+  const { user, isAuthenticated, logout } = useAuth();
 
   const handleAmbassadorSignin = () => {
     setShowAmbassadorPopup(false);
     setShowAmbassadorDashboard(true);
   };
+
+  // Check if user is already authenticated and redirect to dashboard
+  useEffect(() => {
+    if (isAuthenticated && user) {
+      if (user.role === "admin" || user.role === "ambassador") {
+        setShowAmbassadorDashboard(true);
+      }
+    }
+  }, [isAuthenticated, user]);
 
   const handleCreatorSignup = () => {
     setShowCreatorPopup(false);
@@ -181,15 +192,41 @@ export default function HomePage() {
 
           {/* Sign In Options */}
           <div className="flex flex-col sm:flex-row gap-6 justify-center items-center mb-8">
-            <button
-              onClick={() => setShowAmbassadorPopup(true)}
-              className="group relative px-8 py-4 bg-gradient-to-r from-purple-600 to-purple-700 text-white font-bold rounded-lg overflow-hidden shadow-2xl hover:shadow-purple-500/25 transition-all duration-300 transform hover:scale-105"
-            >
-              <div className="absolute inset-0 bg-purple-400 opacity-0 group-hover:opacity-20 transition-opacity duration-300"></div>
-              <span className="relative flex items-center gap-2">
-                🎓 Ambassador Sign In
-              </span>
-            </button>
+            {isAuthenticated ? (
+              <div className="text-center">
+                <div className="text-amber-400 font-bold text-lg mb-2">
+                  Welcome back, {user?.name}!
+                </div>
+                <div className="text-slate-300 text-sm mb-4">
+                  {user?.role === "admin" ? "Administrator" : "Ambassador"} •{" "}
+                  {user?.country} • {user?.points} points
+                </div>
+                <button
+                  onClick={() => setShowAmbassadorDashboard(true)}
+                  className="group relative px-8 py-4 bg-gradient-to-r from-green-600 to-green-700 hover:from-green-500 hover:to-green-600 text-white font-bold rounded-xl transition-all duration-300 transform hover:scale-105 hover:shadow-xl hover:shadow-green-500/25 min-w-[280px]"
+                >
+                  <span className="relative flex items-center gap-2">
+                    🎓 Go to Dashboard
+                  </span>
+                </button>
+                <button
+                  onClick={logout}
+                  className="ml-4 px-4 py-2 text-slate-400 hover:text-slate-200 transition-colors"
+                >
+                  Sign Out
+                </button>
+              </div>
+            ) : (
+              <button
+                onClick={() => setShowAmbassadorPopup(true)}
+                className="group relative px-8 py-4 bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-500 hover:to-purple-600 text-white font-bold rounded-xl transition-all duration-300 transform hover:scale-105 hover:shadow-xl hover:shadow-purple-500/25 min-w-[280px]"
+              >
+                <div className="absolute inset-0 bg-purple-400 opacity-0 group-hover:opacity-20 transition-opacity duration-300"></div>
+                <span className="relative flex items-center gap-2">
+                  🎓 Ambassador Sign In
+                </span>
+              </button>
+            )}
             <button
               onClick={() => setShowCreatorPopup(true)}
               className="group px-8 py-4 bg-gradient-to-r from-amber-500 to-yellow-500 text-slate-900 font-bold rounded-lg shadow-2xl hover:shadow-amber-500/25 transition-all duration-300 transform hover:scale-105"
@@ -201,8 +238,13 @@ export default function HomePage() {
           </div>
 
           <div className="text-sm text-slate-400">
-            New Creator? Sign up above • Ambassador? Contact admin for
-            invitation
+            {isAuthenticated ? (
+              <>
+                Authenticated as {user?.name} • Role: {user?.role}
+              </>
+            ) : (
+              <>New Creator? Sign up above • Ambassador? Use demo credentials</>
+            )}
           </div>
         </div>
       </section>
