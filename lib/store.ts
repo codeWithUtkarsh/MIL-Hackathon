@@ -13,6 +13,7 @@ import {
   AssetReview,
   Invitation,
   MemberRole,
+  AmbassadorNetwork,
 } from "./types";
 import { simpleDbService } from "./simple-db-service";
 
@@ -258,6 +259,7 @@ export const useStore = create<StoreState>()(
       pointsLedger: [],
       activities: [],
       invitations: [],
+      networks: [],
       settings: defaultSettings,
 
       // Dashboard stats (computed)
@@ -656,6 +658,107 @@ export const useStore = create<StoreState>()(
             reject(error);
           }
         });
+      },
+
+      // Network actions
+      addCreatorToNetwork: (creatorId: string, ambassadorId?: string) => {
+        return new Promise(async (resolve, reject) => {
+          try {
+            const currentUser = get().currentUser;
+            const effectiveAmbassadorId = ambassadorId || currentUser?.id;
+
+            if (!effectiveAmbassadorId) {
+              reject(new Error("Not authenticated"));
+              return;
+            }
+
+            const network: AmbassadorNetwork = {
+              id: ulid(),
+              ambassadorId: effectiveAmbassadorId,
+              creatorId,
+              addedAt: new Date().toISOString(),
+              status: "active",
+            };
+
+            // Add to store
+            set((state) => ({
+              networks: [...state.networks, network],
+            }));
+
+            // Add activity
+            const creator = get().members.find((m) => m.id === creatorId);
+            const actorName = currentUser?.name || "Ambassador";
+            get().addActivity({
+              type: "member_joined",
+              memberId: effectiveAmbassadorId,
+              memberName: actorName,
+              description: `Added ${creator?.name || "creator"} to network`,
+              status: "active",
+              relatedId: network.id,
+            });
+
+            resolve(network);
+          } catch (error) {
+            console.error("Error adding creator to network:", error);
+            reject(error);
+          }
+        });
+      },
+
+      removeCreatorFromNetwork: (networkId: string) => {
+        return new Promise(async (resolve, reject) => {
+          try {
+            // Find the network before removing it
+            const networkToRemove = get().networks.find(
+              (n) => n.id === networkId,
+            );
+
+            // Remove from store
+            set((state) => ({
+              networks: state.networks.filter((n) => n.id !== networkId),
+            }));
+
+            // Add activity log
+            if (networkToRemove) {
+              const creator = get().members.find(
+                (m) => m.id === networkToRemove.creatorId,
+              );
+              const currentUser = get().currentUser;
+              const actorName = currentUser?.name || "Ambassador";
+
+              get().addActivity({
+                type: "member_joined",
+                memberId: networkToRemove.ambassadorId,
+                memberName: actorName,
+                description: `Removed ${creator?.name || "creator"} from network`,
+                status: "active",
+                relatedId: networkId,
+              });
+            }
+
+            resolve(true);
+          } catch (error) {
+            console.error("Error removing creator from network:", error);
+            reject(error);
+          }
+        });
+      },
+
+      getNetworkCreators: (ambassadorId?: string) => {
+        const state = get();
+        const currentUser = state.currentUser;
+        const effectiveAmbassadorId = ambassadorId || currentUser?.id;
+
+        if (!effectiveAmbassadorId) return [];
+
+        const networkCreatorIds = state.networks
+          .filter(
+            (n) =>
+              n.ambassadorId === effectiveAmbassadorId && n.status === "active",
+          )
+          .map((n) => n.creatorId);
+
+        return state.members.filter((m) => networkCreatorIds.includes(m.id));
       },
 
       // Points actions

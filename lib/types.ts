@@ -121,6 +121,15 @@ export interface Invitation {
   acceptedAt?: string;
 }
 
+export interface AmbassadorNetwork {
+  id: string;
+  ambassadorId: string;
+  creatorId: string;
+  addedAt: string;
+  status: "active" | "inactive";
+  notes?: string;
+}
+
 export interface Settings {
   brand: {
     name: string;
@@ -152,6 +161,7 @@ export interface StoreState {
   pointsLedger: PointsLedger[];
   activities: Activity[];
   invitations: Invitation[];
+  networks: AmbassadorNetwork[];
   settings: Settings;
 
   // Dashboard stats (computed)
@@ -187,6 +197,14 @@ export interface StoreState {
     userData: Partial<Member>,
   ) => Promise<Member | null>;
   revokeInvitation: (id: string) => Promise<boolean>;
+
+  // Network actions
+  addCreatorToNetwork: (
+    creatorId: string,
+    ambassadorId?: string,
+  ) => Promise<AmbassadorNetwork>;
+  removeCreatorFromNetwork: (networkId: string) => Promise<boolean>;
+  getNetworkCreators: (ambassadorId?: string) => Member[];
 
   // Points actions
   awardPoints: (entry: Omit<PointsLedger, "id" | "timestamp">) => void;

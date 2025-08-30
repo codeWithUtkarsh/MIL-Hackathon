@@ -5,11 +5,12 @@ import { useStore } from "../lib/store";
 import { useAuth } from "../lib/auth-context";
 import ContentReviewPopup from "../components/ContentReviewPopup";
 import InviteAmbassadorModal from "../components/InviteAmbassadorModal";
+import AddCreatorModal from "../components/AddCreatorModal";
 import {
   resendInvitationAction,
   revokeInvitationAction,
 } from "../lib/invitation-actions";
-import type { Asset } from "../lib/types";
+import type { Asset, Member } from "../lib/types";
 
 export default function AmbassadorDashboardPage() {
   const { user } = useAuth();
@@ -20,6 +21,8 @@ export default function AmbassadorDashboardPage() {
     members,
     assets,
     invitations,
+    networks,
+    getNetworkCreators,
     initializeData,
     addMember,
     approveAsset,
@@ -33,6 +36,9 @@ export default function AmbassadorDashboardPage() {
 
   // State for invitation modal
   const [isInviteModalOpen, setIsInviteModalOpen] = useState(false);
+
+  // State for add creator modal
+  const [isAddCreatorModalOpen, setIsAddCreatorModalOpen] = useState(false);
 
   // Get pending assets for UI state
   const pendingAssets = assets.filter((asset) => asset.status === "pending");
@@ -71,6 +77,10 @@ export default function AmbassadorDashboardPage() {
       invitation: inv,
     }));
 
+  // Get network creators count
+  const networkCreators = getNetworkCreators(user?.id.toString());
+  const activeNetworkCreators = networkCreators.length;
+
   // Helper function to get relative time
   function getRelativeTime(timestamp: string): string {
     const now = new Date();
@@ -87,20 +97,13 @@ export default function AmbassadorDashboardPage() {
     return `${Math.floor(diffInSeconds / 604800)} weeks ago`;
   }
 
-  // Demo functions to test database functionality
-  const handleAddNewCreator = () => {
-    const newCreatorData = {
-      role: "creator" as const,
-      name: `Test Creator ${Math.floor(Math.random() * 1000)}`,
-      email: `creator${Math.floor(Math.random() * 1000)}@test.edu`,
-      handle: `@creator${Math.floor(Math.random() * 1000)}`,
-      campus: "Test University",
-      languages: ["English"],
-      points: Math.floor(Math.random() * 100),
-      isActive: true,
-    };
+  const handleOpenAddCreator = () => {
+    setIsAddCreatorModalOpen(true);
+  };
 
-    addMember(newCreatorData);
+  const handleAddCreatorSuccess = () => {
+    // Refresh data to show updates
+    refreshDashboardStats();
   };
 
   const handleInviteSuccess = () => {
@@ -209,7 +212,7 @@ export default function AmbassadorDashboardPage() {
             <div className="flex items-center justify-between mb-4">
               <div className="text-2xl">👥</div>
               <div className="text-3xl font-bold text-amber-400">
-                {dashboardStats.activeCreators}
+                {activeNetworkCreators}
               </div>
             </div>
             <h3 className="text-slate-300 font-semibold">Active Creators</h3>
@@ -415,7 +418,7 @@ export default function AmbassadorDashboardPage() {
                   {pendingAssets.length > 0 && `(${pendingAssets.length})`}
                 </button>
                 <button
-                  onClick={handleAddNewCreator}
+                  onClick={handleOpenAddCreator}
                   className="p-3 bg-gradient-to-r from-blue-600/20 to-blue-700/20 hover:from-blue-600/30 hover:to-blue-700/30 border border-blue-500/30 text-blue-400 rounded-lg transition-all duration-200 text-sm font-medium"
                 >
                   👥 Add Creator
@@ -446,6 +449,13 @@ export default function AmbassadorDashboardPage() {
         isOpen={isInviteModalOpen}
         onClose={() => setIsInviteModalOpen(false)}
         onSuccess={handleInviteSuccess}
+      />
+
+      {/* Add Creator Modal */}
+      <AddCreatorModal
+        isOpen={isAddCreatorModalOpen}
+        onClose={() => setIsAddCreatorModalOpen(false)}
+        onSuccess={handleAddCreatorSuccess}
       />
     </div>
   );
