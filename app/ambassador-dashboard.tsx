@@ -4,6 +4,11 @@ import { useEffect, useState } from "react";
 import { useStore } from "../lib/store";
 import { useAuth } from "../lib/auth-context";
 import ContentReviewPopup from "../components/ContentReviewPopup";
+import InviteAmbassadorModal from "../components/InviteAmbassadorModal";
+import {
+  resendInvitationAction,
+  revokeInvitationAction,
+} from "../lib/invitation-actions";
 import type { Asset } from "../lib/types";
 
 export default function AmbassadorDashboardPage() {
@@ -14,6 +19,7 @@ export default function AmbassadorDashboardPage() {
     refreshDashboardStats,
     members,
     assets,
+    invitations,
     initializeData,
     addMember,
     approveAsset,
@@ -24,6 +30,9 @@ export default function AmbassadorDashboardPage() {
   // State for review popup
   const [reviewAsset, setReviewAsset] = useState<Asset | null>(null);
   const [isReviewPopupOpen, setIsReviewPopupOpen] = useState(false);
+
+  // State for invitation modal
+  const [isInviteModalOpen, setIsInviteModalOpen] = useState(false);
 
   // Get pending assets for UI state
   const pendingAssets = assets.filter((asset) => asset.status === "pending");
@@ -51,21 +60,16 @@ export default function AmbassadorDashboardPage() {
       relatedId: activity.relatedId,
     }));
 
-  // Get pending invitations (mock data for now)
-  const pendingInvitations = [
-    {
-      id: 1,
-      email: "dr.smith@university.edu",
-      role: "Senior Ambassador",
-      sent: "3 days ago",
-    },
-    {
-      id: 2,
-      email: "prof.williams@college.edu",
-      role: "Content Ambassador",
-      sent: "1 week ago",
-    },
-  ];
+  // Get pending invitations from store
+  const pendingInvitations = (invitations || [])
+    .filter((inv) => inv.status === "pending")
+    .map((inv) => ({
+      id: inv.id,
+      email: inv.email,
+      role: inv.role.charAt(0).toUpperCase() + inv.role.slice(1),
+      sent: getRelativeTime(inv.createdAt),
+      invitation: inv,
+    }));
 
   // Helper function to get relative time
   function getRelativeTime(timestamp: string): string {
@@ -97,6 +101,30 @@ export default function AmbassadorDashboardPage() {
     };
 
     addMember(newCreatorData);
+  };
+
+  const handleInviteSuccess = () => {
+    // Refresh data to show new invitation
+    refreshDashboardStats();
+  };
+
+  const handleResendInvitation = async (invitation: any) => {
+    try {
+      await resendInvitationAction(invitation.id, invitation.invitation);
+      console.log("Invitation resent successfully");
+    } catch (error) {
+      console.error("Failed to resend invitation:", error);
+    }
+  };
+
+  const handleRevokeInvitation = async (invitationId: string) => {
+    try {
+      await revokeInvitationAction(invitationId);
+      // Refresh data to remove revoked invitation
+      refreshDashboardStats();
+    } catch (error) {
+      console.error("Failed to revoke invitation:", error);
+    }
   };
 
   const handleApproveFirstPendingAsset = () => {
@@ -307,7 +335,10 @@ export default function AmbassadorDashboardPage() {
                 </h2>
               </div>
 
-              <button className="w-full mb-4 px-4 py-3 bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-500 hover:to-purple-600 text-white font-bold rounded-lg transition-all duration-300 transform hover:scale-[1.02]">
+              <button
+                onClick={() => setIsInviteModalOpen(true)}
+                className="w-full mb-4 px-4 py-3 bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-500 hover:to-purple-600 text-white font-bold rounded-lg transition-all duration-300 transform hover:scale-[1.02]"
+              >
                 + Invite New Ambassador
               </button>
 
@@ -315,24 +346,44 @@ export default function AmbassadorDashboardPage() {
                 <h3 className="text-slate-300 font-semibold mb-3">
                   Pending Invitations
                 </h3>
-                {pendingInvitations.map((invitation) => (
-                  <div
-                    key={invitation.id}
-                    className="flex items-center justify-between p-3 bg-slate-900/30 rounded-lg border border-slate-700/50"
-                  >
-                    <div>
-                      <p className="text-slate-200 text-sm font-medium">
-                        {invitation.email}
-                      </p>
-                      <p className="text-slate-400 text-xs">
-                        {invitation.role} • Sent {invitation.sent}
-                      </p>
-                    </div>
-                    <button className="px-2 py-1 text-xs text-slate-400 hover:text-slate-200 transition-colors duration-200">
-                      Resend
-                    </button>
+                {pendingInvitations.length === 0 ? (
+                  <div className="text-center py-6 text-slate-400">
+                    <div className="text-2xl mb-2">📮</div>
+                    <p className="text-sm">No pending invitations</p>
                   </div>
-                ))}
+                ) : (
+                  pendingInvitations.map((invitation) => (
+                    <div
+                      key={invitation.id}
+                      className="flex items-center justify-between p-3 bg-slate-900/30 rounded-lg border border-slate-700/50"
+                    >
+                      <div>
+                        <p className="text-slate-200 text-sm font-medium">
+                          {invitation.email}
+                        </p>
+                        <p className="text-slate-400 text-xs">
+                          {invitation.role} • Sent {invitation.sent}
+                        </p>
+                      </div>
+                      <div className="flex gap-2">
+                        <button
+                          onClick={() => handleResendInvitation(invitation)}
+                          className="px-2 py-1 text-xs text-blue-400 hover:text-blue-300 transition-colors duration-200"
+                          title="Resend invitation"
+                        >
+                          Resend
+                        </button>
+                        <button
+                          onClick={() => handleRevokeInvitation(invitation.id)}
+                          className="px-2 py-1 text-xs text-red-400 hover:text-red-300 transition-colors duration-200"
+                          title="Revoke invitation"
+                        >
+                          Revoke
+                        </button>
+                      </div>
+                    </div>
+                  ))
+                )}
               </div>
             </div>
 
@@ -389,6 +440,13 @@ export default function AmbassadorDashboardPage() {
           onClose={handleCloseReview}
         />
       )}
+
+      {/* Invite Ambassador Modal */}
+      <InviteAmbassadorModal
+        isOpen={isInviteModalOpen}
+        onClose={() => setIsInviteModalOpen(false)}
+        onSuccess={handleInviteSuccess}
+      />
     </div>
   );
 }

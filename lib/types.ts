@@ -109,6 +109,18 @@ export interface Activity {
   relatedId?: string; // ID of asset, event, etc.
 }
 
+export interface Invitation {
+  id: string;
+  email: string;
+  role: MemberRole;
+  invitedBy: string;
+  status: "pending" | "accepted" | "expired";
+  token: string;
+  createdAt: string;
+  expiresAt: string;
+  acceptedAt?: string;
+}
+
 export interface Settings {
   brand: {
     name: string;
@@ -139,6 +151,7 @@ export interface StoreState {
   events: Event[];
   pointsLedger: PointsLedger[];
   activities: Activity[];
+  invitations: Invitation[];
   settings: Settings;
 
   // Dashboard stats (computed)
@@ -165,6 +178,15 @@ export interface StoreState {
 
   // Activity actions
   addActivity: (activity: Omit<Activity, "id" | "timestamp">) => void;
+
+  // Invitation actions
+  sendInvitation: (email: string, role: MemberRole) => Promise<Invitation>;
+  resendInvitation: (id: string) => Promise<boolean>;
+  acceptInvitation: (
+    token: string,
+    userData: Partial<Member>,
+  ) => Promise<Member | null>;
+  revokeInvitation: (id: string) => Promise<boolean>;
 
   // Points actions
   awardPoints: (entry: Omit<PointsLedger, "id" | "timestamp">) => void;

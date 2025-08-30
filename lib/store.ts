@@ -11,6 +11,8 @@ import {
   DashboardStats,
   Settings,
   AssetReview,
+  Invitation,
+  MemberRole,
 } from "./types";
 import { simpleDbService } from "./simple-db-service";
 
@@ -255,6 +257,7 @@ export const useStore = create<StoreState>()(
       events: [],
       pointsLedger: [],
       activities: [],
+      invitations: [],
       settings: defaultSettings,
 
       // Dashboard stats (computed)
@@ -479,6 +482,180 @@ export const useStore = create<StoreState>()(
             console.error("Error adding activity:", error);
           }
         })();
+      },
+
+      // Invitation actions
+      sendInvitation: (email: string, role: MemberRole) => {
+        return new Promise(async (resolve, reject) => {
+          try {
+            const currentUser = get().currentUser;
+            if (!currentUser) {
+              reject(new Error("Not authenticated"));
+              return;
+            }
+
+            // Generate unique token and expiry (30 days from now)
+            const token = ulid();
+            const expiresAt = new Date();
+            expiresAt.setDate(expiresAt.getDate() + 30);
+
+            const invitation: Invitation = {
+              id: ulid(),
+              email,
+              role,
+              invitedBy: currentUser.id,
+              status: "pending",
+              token,
+              createdAt: new Date().toISOString(),
+              expiresAt: expiresAt.toISOString(),
+            };
+
+            // Send email invitation
+            const response = await fetch("/api/invitations/send", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({ invitation }),
+            });
+
+            if (!response.ok) {
+              throw new Error("Failed to send invitation email");
+            }
+
+            // Add to store
+            set((state) => ({
+              invitations: [...state.invitations, invitation],
+            }));
+
+            // Add activity
+            get().addActivity({
+              type: "member_joined",
+              memberId: currentUser.id,
+              memberName: currentUser.name,
+              description: `Sent invitation to ${email} for ${role} role`,
+              status: "active",
+              relatedId: invitation.id,
+            });
+
+            resolve(invitation);
+          } catch (error) {
+            console.error("Error sending invitation:", error);
+            reject(error);
+          }
+        });
+      },
+
+      resendInvitation: (id: string) => {
+        return new Promise(async (resolve, reject) => {
+          try {
+            const state = get();
+            const invitation = state.invitations.find((inv) => inv.id === id);
+
+            if (!invitation) {
+              reject(new Error("Invitation not found"));
+              return;
+            }
+
+            // Send email invitation
+            const response = await fetch("/api/invitations/send", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({ invitation }),
+            });
+
+            if (!response.ok) {
+              throw new Error("Failed to resend invitation email");
+            }
+
+            resolve(true);
+          } catch (error) {
+            console.error("Error resending invitation:", error);
+            reject(error);
+          }
+        });
+      },
+
+      acceptInvitation: (token: string, userData: Partial<Member>) => {
+        return new Promise(async (resolve, reject) => {
+          try {
+            const state = get();
+            const invitation = state.invitations.find(
+              (inv) => inv.token === token,
+            );
+
+            if (!invitation) {
+              reject(new Error("Invalid invitation token"));
+              return;
+            }
+
+            if (invitation.status !== "pending") {
+              reject(new Error("Invitation already used or expired"));
+              return;
+            }
+
+            if (new Date() > new Date(invitation.expiresAt)) {
+              // Mark as expired
+              set((state) => ({
+                invitations: state.invitations.map((inv) =>
+                  inv.id === invitation.id
+                    ? { ...inv, status: "expired" as const }
+                    : inv,
+                ),
+              }));
+              reject(new Error("Invitation has expired"));
+              return;
+            }
+
+            // Create new member
+            const newMember = await get().addMember({
+              role: invitation.role,
+              name: userData.name || "",
+              email: invitation.email,
+              handle: userData.handle || "",
+              campus: userData.campus || "",
+              languages: userData.languages || ["English"],
+              points: 0,
+              isActive: true,
+            });
+
+            // Mark invitation as accepted
+            set((state) => ({
+              invitations: state.invitations.map((inv) =>
+                inv.id === invitation.id
+                  ? {
+                      ...inv,
+                      status: "accepted" as const,
+                      acceptedAt: new Date().toISOString(),
+                    }
+                  : inv,
+              ),
+            }));
+
+            resolve(newMember);
+          } catch (error) {
+            console.error("Error accepting invitation:", error);
+            reject(error);
+          }
+        });
+      },
+
+      revokeInvitation: (id: string) => {
+        return new Promise(async (resolve, reject) => {
+          try {
+            // Remove invitation from store
+            set((state) => ({
+              invitations: state.invitations.filter((inv) => inv.id !== id),
+            }));
+
+            resolve(true);
+          } catch (error) {
+            console.error("Error revoking invitation:", error);
+            reject(error);
+          }
+        });
       },
 
       // Points actions
