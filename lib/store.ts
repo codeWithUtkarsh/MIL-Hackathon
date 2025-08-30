@@ -277,7 +277,7 @@ export const useStore = create<StoreState>()(
 
       // Member actions
       addMember: (memberData) => {
-        (async () => {
+        return new Promise(async (resolve, reject) => {
           try {
             const newMember = await simpleDbService.createMember(memberData);
 
@@ -289,14 +289,16 @@ export const useStore = create<StoreState>()(
             // Refresh activities and stats
             await get().loadActivities();
             await get().refreshDashboardStats();
+            resolve(newMember);
           } catch (error) {
             console.error("Error adding member:", error);
+            reject(error);
           }
-        })();
+        });
       },
 
       updateMember: (id, updates) => {
-        (async () => {
+        return new Promise(async (resolve, reject) => {
           try {
             await simpleDbService.updateMember(id, updates);
 
@@ -308,15 +310,17 @@ export const useStore = create<StoreState>()(
             }));
 
             await get().refreshDashboardStats();
+            resolve(true);
           } catch (error) {
             console.error("Error updating member:", error);
+            reject(error);
           }
-        })();
+        });
       },
 
       // Asset actions
       addAsset: (assetData) => {
-        (async () => {
+        return new Promise(async (resolve, reject) => {
           try {
             const newAsset = await simpleDbService.createAsset(assetData);
 
@@ -328,14 +332,16 @@ export const useStore = create<StoreState>()(
             // Refresh activities and stats
             await get().loadActivities();
             await get().refreshDashboardStats();
+            resolve(newAsset);
           } catch (error) {
             console.error("Error adding asset:", error);
+            reject(error);
           }
-        })();
+        });
       },
 
       updateAsset: (id, updates) => {
-        (async () => {
+        return new Promise(async (resolve, reject) => {
           try {
             await simpleDbService.updateAsset(id, updates);
 
@@ -353,44 +359,65 @@ export const useStore = create<StoreState>()(
             }));
 
             await get().refreshDashboardStats();
+            resolve(true);
           } catch (error) {
             console.error("Error updating asset:", error);
+            reject(error);
           }
-        })();
+        });
       },
 
       approveAsset: (id, review) => {
-        (async () => {
+        return new Promise(async (resolve, reject) => {
           try {
+            console.log("Store: Starting approveAsset for ID:", id);
             const currentUser = get().currentUser;
-            if (!currentUser) return;
+            const userId = currentUser?.id || "admin";
 
-            await simpleDbService.approveAsset(id, review, currentUser.id);
+            console.log("Store: Current user:", userId);
+            console.log("Store: Calling simpleDbService.approveAsset...");
+
+            await simpleDbService.approveAsset(id, review, userId);
+
+            console.log("Store: Database service completed, reloading data...");
 
             // Reload all data to reflect changes
             await get().loadAssets();
             await get().loadMembers();
             await get().loadActivities();
             await get().refreshDashboardStats();
+
+            console.log("Store: All data reloaded, approveAsset complete");
+            resolve(true);
           } catch (error) {
             console.error("Error approving asset:", error);
+            reject(error);
           }
-        })();
+        });
       },
 
       rejectAsset: (id, review) => {
-        (async () => {
+        return new Promise(async (resolve, reject) => {
           try {
+            console.log("Store: Starting rejectAsset for ID:", id);
+            console.log("Store: Calling simpleDbService.rejectAsset...");
+
             await simpleDbService.rejectAsset(id, review);
+
+            console.log("Store: Database service completed, reloading data...");
 
             // Reload data to reflect changes
             await get().loadAssets();
             await get().loadActivities();
             await get().refreshDashboardStats();
+
+            console.log("Store: All data reloaded, rejectAsset complete");
+            resolve(true);
           } catch (error) {
             console.error("Error rejecting asset:", error);
+            reject(error);
           }
-        })();
+        });
       },
 
       // Event actions
@@ -478,14 +505,19 @@ export const useStore = create<StoreState>()(
 
       // Dashboard actions
       refreshDashboardStats: () => {
-        (async () => {
+        return new Promise(async (resolve, reject) => {
           try {
+            console.log("Store: Refreshing dashboard stats...");
             const stats = await simpleDbService.getDashboardStats();
+            console.log("Store: New dashboard stats:", stats);
             set({ dashboardStats: stats });
+            console.log("Store: Dashboard stats updated in state");
+            resolve(stats);
           } catch (error) {
             console.error("Error refreshing dashboard stats:", error);
+            reject(error);
           }
-        })();
+        });
       },
 
       // Data loading actions
@@ -503,8 +535,16 @@ export const useStore = create<StoreState>()(
       loadAssets: () => {
         (async () => {
           try {
+            console.log("Store: Loading assets from database...");
             const assets = await simpleDbService.getAllAssets();
+            console.log("Store: Loaded assets:", assets.length, "assets");
+            console.log("Store: Assets by status:", {
+              pending: assets.filter((a) => a.status === "pending").length,
+              approved: assets.filter((a) => a.status === "approved").length,
+              rejected: assets.filter((a) => a.status === "rejected").length,
+            });
             set({ assets });
+            console.log("Store: Assets state updated");
           } catch (error) {
             console.error("Error loading assets:", error);
           }
@@ -525,8 +565,15 @@ export const useStore = create<StoreState>()(
       loadActivities: () => {
         (async () => {
           try {
+            console.log("Store: Loading activities from database...");
             const activities = await simpleDbService.getAllActivities();
+            console.log(
+              "Store: Loaded activities:",
+              activities.length,
+              "activities",
+            );
             set({ activities });
+            console.log("Store: Activities state updated");
           } catch (error) {
             console.error("Error loading activities:", error);
           }

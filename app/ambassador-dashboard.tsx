@@ -1,8 +1,10 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useStore } from "../lib/store";
 import { useAuth } from "../lib/auth-context";
+import ContentReviewPopup from "../components/ContentReviewPopup";
+import type { Asset } from "../lib/types";
 
 export default function AmbassadorDashboardPage() {
   const { user } = useAuth();
@@ -15,7 +17,16 @@ export default function AmbassadorDashboardPage() {
     initializeData,
     addMember,
     approveAsset,
+    currentUser,
+    setCurrentUser,
   } = useStore();
+
+  // State for review popup
+  const [reviewAsset, setReviewAsset] = useState<Asset | null>(null);
+  const [isReviewPopupOpen, setIsReviewPopupOpen] = useState(false);
+
+  // Get pending assets for UI state
+  const pendingAssets = assets.filter((asset) => asset.status === "pending");
 
   // Initialize data from database and refresh dashboard stats when component mounts
   useEffect(() => {
@@ -37,6 +48,7 @@ export default function AmbassadorDashboardPage() {
       action: activity.description,
       time: getRelativeTime(activity.timestamp),
       status: activity.status,
+      relatedId: activity.relatedId,
     }));
 
   // Get pending invitations (mock data for now)
@@ -102,6 +114,19 @@ export default function AmbassadorDashboardPage() {
 
       approveAsset(pendingAsset.id, review);
     }
+  };
+
+  const handleOpenReview = (assetId: string) => {
+    const asset = assets.find((a) => a.id === assetId);
+    if (asset) {
+      setReviewAsset(asset);
+      setIsReviewPopupOpen(true);
+    }
+  };
+
+  const handleCloseReview = () => {
+    setIsReviewPopupOpen(false);
+    setReviewAsset(null);
   };
 
   return (
@@ -241,7 +266,13 @@ export default function AmbassadorDashboardPage() {
                       <p className="text-slate-500 text-xs">{activity.time}</p>
                     </div>
                     {activity.status === "pending" && (
-                      <button className="px-3 py-1 bg-amber-400/20 hover:bg-amber-400/30 text-amber-400 text-sm rounded-md transition-colors duration-200">
+                      <button
+                        onClick={() =>
+                          activity.relatedId &&
+                          handleOpenReview(activity.relatedId)
+                        }
+                        className="px-3 py-1 bg-amber-400/20 hover:bg-amber-400/30 text-amber-400 text-sm rounded-md transition-colors duration-200 hover:shadow-lg"
+                      >
                         Review
                       </button>
                     )}
@@ -316,10 +347,21 @@ export default function AmbassadorDashboardPage() {
 
               <div className="grid grid-cols-2 gap-3">
                 <button
-                  onClick={handleApproveFirstPendingAsset}
-                  className="p-3 bg-gradient-to-r from-emerald-600/20 to-emerald-700/20 hover:from-emerald-600/30 hover:to-emerald-700/30 border border-emerald-500/30 text-emerald-400 rounded-lg transition-all duration-200 text-sm font-medium"
+                  onClick={() => {
+                    const pendingAsset = pendingAssets[0];
+                    if (pendingAsset) {
+                      handleOpenReview(pendingAsset.id);
+                    }
+                  }}
+                  disabled={pendingAssets.length === 0}
+                  className={`p-3 rounded-lg transition-all duration-200 text-sm font-medium ${
+                    pendingAssets.length > 0
+                      ? "bg-gradient-to-r from-emerald-600/20 to-emerald-700/20 hover:from-emerald-600/30 hover:to-emerald-700/30 border border-emerald-500/30 text-emerald-400"
+                      : "bg-slate-700/30 border border-slate-600/30 text-slate-500 cursor-not-allowed"
+                  }`}
                 >
-                  📝 Approve Content
+                  📝 Review Content{" "}
+                  {pendingAssets.length > 0 && `(${pendingAssets.length})`}
                 </button>
                 <button
                   onClick={handleAddNewCreator}
@@ -338,6 +380,15 @@ export default function AmbassadorDashboardPage() {
           </div>
         </div>
       </div>
+
+      {/* Content Review Popup */}
+      {reviewAsset && (
+        <ContentReviewPopup
+          asset={reviewAsset}
+          isOpen={isReviewPopupOpen}
+          onClose={handleCloseReview}
+        />
+      )}
     </div>
   );
 }

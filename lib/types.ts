@@ -148,14 +148,16 @@ export interface StoreState {
   setCurrentUser: (user: Member | null) => void;
 
   // Member actions
-  addMember: (member: Omit<Member, "id" | "createdAt">) => void;
-  updateMember: (id: string, updates: Partial<Member>) => void;
+  addMember: (member: Omit<Member, "id" | "createdAt">) => Promise<Member>;
+  updateMember: (id: string, updates: Partial<Member>) => Promise<boolean>;
 
   // Asset actions
-  addAsset: (asset: Omit<Asset, "id" | "createdAt" | "updatedAt">) => void;
-  updateAsset: (id: string, updates: Partial<Asset>) => void;
-  approveAsset: (id: string, review: AssetReview) => void;
-  rejectAsset: (id: string, review: AssetReview) => void;
+  addAsset: (
+    asset: Omit<Asset, "id" | "createdAt" | "updatedAt">,
+  ) => Promise<Asset>;
+  updateAsset: (id: string, updates: Partial<Asset>) => Promise<boolean>;
+  approveAsset: (id: string, review: AssetReview) => Promise<boolean>;
+  rejectAsset: (id: string, review: AssetReview) => Promise<boolean>;
 
   // Event actions
   addEvent: (event: Omit<Event, "id" | "createdAt" | "updatedAt">) => void;
@@ -168,7 +170,7 @@ export interface StoreState {
   awardPoints: (entry: Omit<PointsLedger, "id" | "timestamp">) => void;
 
   // Dashboard actions
-  refreshDashboardStats: () => void;
+  refreshDashboardStats: () => Promise<DashboardStats>;
 
   // Data loading actions
   loadMembers: () => void;

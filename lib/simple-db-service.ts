@@ -1,5 +1,12 @@
-import type { Member, Asset, Event, Activity, DashboardStats, AssetReview } from './types';
-import { ulid } from 'ulid';
+import type {
+  Member,
+  Asset,
+  Event,
+  Activity,
+  DashboardStats,
+  AssetReview,
+} from "./types";
+import { ulid } from "ulid";
 
 // Simple file-based database service that works without external dependencies
 export class SimpleDatabaseService {
@@ -20,22 +27,24 @@ export class SimpleDatabaseService {
   private activities: Activity[] = [];
 
   // Member operations
-  async createMember(memberData: Omit<Member, 'id' | 'createdAt'>): Promise<Member> {
+  async createMember(
+    memberData: Omit<Member, "id" | "createdAt">,
+  ): Promise<Member> {
     const member: Member = {
       ...memberData,
       id: ulid(),
-      createdAt: new Date().toISOString()
+      createdAt: new Date().toISOString(),
     };
 
     this.members.push(member);
 
     // Create activity for new member
     await this.createActivity({
-      type: 'member_joined',
+      type: "member_joined",
       memberId: member.id,
       memberName: member.name,
       description: `Joined as ${member.role}`,
-      status: 'active'
+      status: "active",
     });
 
     return member;
@@ -46,27 +55,29 @@ export class SimpleDatabaseService {
   }
 
   async getActiveCreators(): Promise<Member[]> {
-    return this.members.filter(m => m.role === 'creator' && m.isActive);
+    return this.members.filter((m) => m.role === "creator" && m.isActive);
   }
 
   async updateMember(id: string, updates: Partial<Member>): Promise<void> {
-    const index = this.members.findIndex(m => m.id === id);
+    const index = this.members.findIndex((m) => m.id === id);
     if (index !== -1) {
       this.members[index] = { ...this.members[index], ...updates };
     }
   }
 
   async getMemberById(id: string): Promise<Member | null> {
-    return this.members.find(m => m.id === id) || null;
+    return this.members.find((m) => m.id === id) || null;
   }
 
   // Asset operations
-  async createAsset(assetData: Omit<Asset, 'id' | 'createdAt' | 'updatedAt'>): Promise<Asset> {
+  async createAsset(
+    assetData: Omit<Asset, "id" | "createdAt" | "updatedAt">,
+  ): Promise<Asset> {
     const asset: Asset = {
       ...assetData,
       id: ulid(),
       createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString()
+      updatedAt: new Date().toISOString(),
     };
 
     this.assets.push(asset);
@@ -75,12 +86,12 @@ export class SimpleDatabaseService {
     const creator = await this.getMemberById(asset.creatorId);
     if (creator) {
       await this.createActivity({
-        type: 'asset_submitted',
+        type: "asset_submitted",
         memberId: creator.id,
         memberName: creator.name,
         description: `Submitted ${asset.type}: ${asset.title}`,
         status: asset.status,
-        relatedId: asset.id
+        relatedId: asset.id,
       });
     }
 
@@ -91,78 +102,128 @@ export class SimpleDatabaseService {
     return [...this.assets];
   }
 
-  async getAssetsByStatus(status: Asset['status']): Promise<Asset[]> {
-    return this.assets.filter(a => a.status === status);
+  async getAssetsByStatus(status: Asset["status"]): Promise<Asset[]> {
+    return this.assets.filter((a) => a.status === status);
   }
 
   async updateAsset(id: string, updates: Partial<Asset>): Promise<void> {
-    const index = this.assets.findIndex(a => a.id === id);
+    console.log("SimpleDB: Updating asset", id, "with:", updates);
+    const index = this.assets.findIndex((a) => a.id === id);
     if (index !== -1) {
+      console.log("SimpleDB: Found asset at index:", index);
+      console.log("SimpleDB: Current asset:", this.assets[index]);
       this.assets[index] = {
         ...this.assets[index],
         ...updates,
-        updatedAt: new Date().toISOString()
+        updatedAt: new Date().toISOString(),
       };
+      console.log("SimpleDB: Updated asset:", this.assets[index]);
+    } else {
+      console.error("SimpleDB: Asset not found for update:", id);
     }
   }
 
-  async approveAsset(id: string, review: AssetReview, approverUserId: string): Promise<void> {
-    const asset = this.assets.find(a => a.id === id);
+  async approveAsset(
+    id: string,
+    review: AssetReview,
+    approverUserId: string,
+  ): Promise<void> {
+    console.log("SimpleDB: Starting approval for asset:", id);
+    const asset = this.assets.find((a) => a.id === id);
     const creator = asset ? await this.getMemberById(asset.creatorId) : null;
 
-    if (!asset || !creator) return;
+    console.log("SimpleDB: Found asset:", asset ? asset.title : "not found");
+    console.log(
+      "SimpleDB: Found creator:",
+      creator ? creator.name : "not found",
+    );
+
+    if (!asset || !creator) {
+      console.error("SimpleDB: Asset or creator not found");
+      return;
+    }
+
+    console.log("SimpleDB: Asset status before update:", asset.status);
 
     // Update asset with approval
     await this.updateAsset(id, {
-      status: 'approved',
+      status: "approved",
       review,
       score: review.overall,
       approvedAt: new Date().toISOString(),
-      approvedBy: approverUserId
+      approvedBy: approverUserId,
     });
+
+    console.log(
+      "SimpleDB: Asset status after update:",
+      this.assets.find((a) => a.id === id)?.status,
+    );
 
     // Create activity
     await this.createActivity({
-      type: 'asset_approved',
+      type: "asset_approved",
       memberId: creator.id,
       memberName: creator.name,
       description: `${asset.title} approved`,
-      status: 'approved',
-      relatedId: asset.id
+      status: "approved",
+      relatedId: asset.id,
     });
+
+    console.log("SimpleDB: Approval process complete");
   }
 
   async rejectAsset(id: string, review: AssetReview): Promise<void> {
-    const asset = this.assets.find(a => a.id === id);
+    console.log("SimpleDB: Starting rejection for asset:", id);
+    const asset = this.assets.find((a) => a.id === id);
     const creator = asset ? await this.getMemberById(asset.creatorId) : null;
 
-    if (!asset || !creator) return;
+    console.log("SimpleDB: Found asset:", asset ? asset.title : "not found");
+    console.log(
+      "SimpleDB: Found creator:",
+      creator ? creator.name : "not found",
+    );
+
+    if (!asset || !creator) {
+      console.error("SimpleDB: Asset or creator not found");
+      return;
+    }
+
+    console.log("SimpleDB: Asset status before update:", asset.status);
 
     // Update asset with rejection
     await this.updateAsset(id, {
-      status: 'rejected',
+      status: "rejected",
       review,
-      score: review.overall
+      score: review.overall,
     });
+
+    console.log(
+      "SimpleDB: Asset status after update:",
+      this.assets.find((a) => a.id === id)?.status,
+    );
 
     // Create activity
     await this.createActivity({
-      type: 'asset_rejected',
+      type: "asset_rejected",
       memberId: creator.id,
       memberName: creator.name,
       description: `${asset.title} rejected`,
-      status: 'rejected',
-      relatedId: asset.id
+      status: "rejected",
+      relatedId: asset.id,
     });
+
+    console.log("SimpleDB: Rejection process complete");
   }
 
   // Event operations
-  async createEvent(eventData: Omit<Event, 'id' | 'createdAt' | 'updatedAt'>): Promise<Event> {
+  async createEvent(
+    eventData: Omit<Event, "id" | "createdAt" | "updatedAt">,
+  ): Promise<Event> {
     const event: Event = {
       ...eventData,
       id: ulid(),
       createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString()
+      updatedAt: new Date().toISOString(),
     };
 
     this.events.push(event);
@@ -171,12 +232,12 @@ export class SimpleDatabaseService {
     const ambassador = await this.getMemberById(event.ambassadorId);
     if (ambassador) {
       await this.createActivity({
-        type: 'event_created',
+        type: "event_created",
         memberId: ambassador.id,
         memberName: ambassador.name,
         description: `Hosted event at ${event.location}`,
-        status: 'completed',
-        relatedId: event.id
+        status: "completed",
+        relatedId: event.id,
       });
     }
 
@@ -188,22 +249,24 @@ export class SimpleDatabaseService {
   }
 
   async updateEvent(id: string, updates: Partial<Event>): Promise<void> {
-    const index = this.events.findIndex(e => e.id === id);
+    const index = this.events.findIndex((e) => e.id === id);
     if (index !== -1) {
       this.events[index] = {
         ...this.events[index],
         ...updates,
-        updatedAt: new Date().toISOString()
+        updatedAt: new Date().toISOString(),
       };
     }
   }
 
   // Activity operations
-  async createActivity(activityData: Omit<Activity, 'id' | 'timestamp'>): Promise<Activity> {
+  async createActivity(
+    activityData: Omit<Activity, "id" | "timestamp">,
+  ): Promise<Activity> {
     const activity: Activity = {
       ...activityData,
       id: ulid(),
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
     };
 
     this.activities.push(activity);
@@ -211,24 +274,35 @@ export class SimpleDatabaseService {
   }
 
   async getAllActivities(): Promise<Activity[]> {
-    return [...this.activities].sort((a, b) =>
-      new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
+    return [...this.activities].sort(
+      (a, b) =>
+        new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime(),
     );
   }
 
   async getRecentActivities(limit: number = 10): Promise<Activity[]> {
-    const sorted = [...this.activities].sort((a, b) =>
-      new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
+    const sorted = [...this.activities].sort(
+      (a, b) =>
+        new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime(),
     );
     return sorted.slice(0, limit);
   }
 
   // Dashboard operations
   async getDashboardStats(): Promise<DashboardStats> {
-    const activeCreators = this.members.filter(m => m.role === 'creator' && m.isActive).length;
-    const pendingReview = this.assets.filter(a => a.status === 'pending').length;
-    const approvedContent = this.assets.filter(a => a.status === 'approved').length;
-    const monthlyViews = this.assets.reduce((total, asset) => total + asset.monthlyViews, 0);
+    const activeCreators = this.members.filter(
+      (m) => m.role === "creator" && m.isActive,
+    ).length;
+    const pendingReview = this.assets.filter(
+      (a) => a.status === "pending",
+    ).length;
+    const approvedContent = this.assets.filter(
+      (a) => a.status === "approved",
+    ).length;
+    const monthlyViews = this.assets.reduce(
+      (total, asset) => total + asset.monthlyViews,
+      0,
+    );
 
     return {
       activeCreators,
@@ -237,7 +311,7 @@ export class SimpleDatabaseService {
       monthlyViews,
       totalMembers: this.members.length,
       totalEvents: this.events.length,
-      lastUpdated: new Date().toISOString()
+      lastUpdated: new Date().toISOString(),
     };
   }
 
@@ -247,41 +321,41 @@ export class SimpleDatabaseService {
       return; // Already has data
     }
 
-    console.log('Seeding sample data...');
+    console.log("Seeding sample data...");
     this.isInitialized = true;
 
     // Create sample creators
     const creators = [
       {
-        role: 'creator' as const,
-        name: 'Sarah Johnson',
-        email: 'sarah.j@university.edu',
-        handle: '@sarahcreates',
-        campus: 'University of California',
-        languages: ['English', 'Spanish'],
+        role: "creator" as const,
+        name: "Sarah Johnson",
+        email: "sarah.j@university.edu",
+        handle: "@sarahcreates",
+        campus: "University of California",
+        languages: ["English", "Spanish"],
         points: 120,
-        isActive: true
+        isActive: true,
       },
       {
-        role: 'creator' as const,
-        name: 'Mike Chen',
-        email: 'mike.chen@college.edu',
-        handle: '@mikecontent',
-        campus: 'Stanford University',
-        languages: ['English', 'Mandarin'],
+        role: "creator" as const,
+        name: "Mike Chen",
+        email: "mike.chen@college.edu",
+        handle: "@mikecontent",
+        campus: "Stanford University",
+        languages: ["English", "Mandarin"],
         points: 95,
-        isActive: true
+        isActive: true,
       },
       {
-        role: 'creator' as const,
-        name: 'Elena Rodriguez',
-        email: 'elena.r@uni.edu',
-        handle: '@elenadigital',
-        campus: 'MIT',
-        languages: ['English', 'Spanish', 'Portuguese'],
+        role: "creator" as const,
+        name: "Elena Rodriguez",
+        email: "elena.r@uni.edu",
+        handle: "@elenadigital",
+        campus: "MIT",
+        languages: ["English", "Spanish", "Portuguese"],
         points: 150,
-        isActive: true
-      }
+        isActive: true,
+      },
     ];
 
     const createdCreators = [];
@@ -294,59 +368,80 @@ export class SimpleDatabaseService {
     const assets = [
       {
         creatorId: createdCreators[0].id,
-        type: 'video' as const,
-        topic: 'deepfake' as const,
-        title: 'How to Spot Deepfakes in Political Content',
-        link: 'https://youtube.com/watch?v=demo1',
-        caption: 'In this comprehensive guide, we explore the telltale signs of deepfake technology in political advertisements and social media content. Learn to identify inconsistencies in facial movements, lighting, and audio synchronization that can reveal manipulated media.',
+        type: "video" as const,
+        topic: "deepfake" as const,
+        title: "How to Spot Deepfakes in Political Content",
+        link: "https://youtube.com/watch?v=demo1",
+        caption:
+          "In this comprehensive guide, we explore the telltale signs of deepfake technology in political advertisements and social media content. Learn to identify inconsistencies in facial movements, lighting, and audio synchronization that can reveal manipulated media.",
         citations: [
-          'https://research.example.com/deepfake-detection',
-          'https://university.edu/media-literacy-study'
+          "https://research.example.com/deepfake-detection",
+          "https://university.edu/media-literacy-study",
         ],
         accessibility: { captions: true },
-        status: 'approved' as const,
+        status: "approved" as const,
         score: 85,
         monthlyViews: 2500,
         totalViews: 8500,
         approvedAt: new Date(Date.now() - 86400000 * 2).toISOString(),
-        approvedBy: 'admin-1'
+        approvedBy: "admin-1",
       },
       {
         creatorId: createdCreators[1].id,
-        type: 'carousel' as const,
-        topic: 'ad-transparency' as const,
-        title: 'Political Ad Disclosure Requirements',
-        link: 'https://instagram.com/p/demo2',
-        caption: 'Understanding political advertisement disclosure laws is crucial for media literacy. This carousel breaks down the requirements for political ads across different platforms and jurisdictions, helping viewers identify properly disclosed content.',
+        type: "carousel" as const,
+        topic: "ad-transparency" as const,
+        title: "Political Ad Disclosure Requirements",
+        link: "https://instagram.com/p/demo2",
+        caption:
+          "Understanding political advertisement disclosure laws is crucial for media literacy. This carousel breaks down the requirements for political ads across different platforms and jurisdictions, helping viewers identify properly disclosed content.",
         citations: [
-          'https://fec.gov/help-candidates-and-committees/advertising/',
-          'https://transparency.org/political-ads-guide'
+          "https://fec.gov/help-candidates-and-committees/advertising/",
+          "https://transparency.org/political-ads-guide",
         ],
         accessibility: { captions: false },
-        status: 'pending' as const,
+        status: "pending" as const,
         score: 0,
         monthlyViews: 0,
-        totalViews: 0
+        totalViews: 0,
+      },
+      {
+        creatorId: createdCreators[0].id,
+        type: "video" as const,
+        topic: "before-after" as const,
+        title: "Student Critical Thinking Transformation",
+        link: "https://youtube.com/watch?v=demo4",
+        caption:
+          "A compelling before-and-after comparison showing how media literacy education transforms students critical thinking abilities over a semester. This video demonstrates measurable improvements in students ability to identify bias, verify sources, and think critically about media messages.",
+        citations: [
+          "https://education-research.example.com/critical-thinking-study",
+          "https://university.edu/media-literacy-impact-analysis",
+        ],
+        accessibility: { captions: true },
+        status: "pending" as const,
+        score: 0,
+        monthlyViews: 0,
+        totalViews: 0,
       },
       {
         creatorId: createdCreators[2].id,
-        type: 'script' as const,
-        topic: 'verify-30s' as const,
-        title: '30-Second Fact Check Framework',
-        link: 'https://docs.google.com/document/d/demo3',
-        caption: 'A quick reference script for conducting rapid fact-checks of viral claims. This framework provides a structured approach to verifying information in under 30 seconds using reliable sources and cross-referencing techniques.',
+        type: "script" as const,
+        topic: "verify-30s" as const,
+        title: "30-Second Fact Check Framework",
+        link: "https://docs.google.com/document/d/demo3",
+        caption:
+          "A quick reference script for conducting rapid fact-checks of viral claims. This framework provides a structured approach to verifying information in under 30 seconds using reliable sources and cross-referencing techniques.",
         citations: [
-          'https://factcheck.org/methodology/',
-          'https://poynter.org/fact-checking-guide'
+          "https://factcheck.org/methodology/",
+          "https://poynter.org/fact-checking-guide",
         ],
         accessibility: { captions: true },
-        status: 'approved' as const,
+        status: "approved" as const,
         score: 92,
         monthlyViews: 1800,
         totalViews: 5200,
         approvedAt: new Date(Date.now() - 86400000 * 5).toISOString(),
-        approvedBy: 'admin-1'
-      }
+        approvedBy: "admin-1",
+      },
     ];
 
     for (const asset of assets) {
@@ -355,31 +450,31 @@ export class SimpleDatabaseService {
 
     // Create sample ambassador
     const ambassador = await this.createMember({
-      role: 'ambassador',
-      name: 'Dr. Amanda Wilson',
-      email: 'amanda.wilson@university.edu',
-      handle: '@dramandaw',
-      campus: 'Harvard University',
-      languages: ['English'],
+      role: "ambassador",
+      name: "Dr. Amanda Wilson",
+      email: "amanda.wilson@university.edu",
+      handle: "@dramandaw",
+      campus: "Harvard University",
+      languages: ["English"],
       points: 250,
-      isActive: true
+      isActive: true,
     });
 
     // Create sample event
     await this.createEvent({
       ambassadorId: ambassador.id,
       dateISO: new Date(Date.now() - 86400000 * 3).toISOString(),
-      location: 'Harvard University - Media Literacy Workshop',
+      location: "Harvard University - Media Literacy Workshop",
       attendees: 45,
       preAvg: 62,
       postAvg: 84,
       deltaPct: 35.5,
       assetsUsed: [assets[0].creatorId, assets[2].creatorId],
-      recapLink: 'https://harvard.edu/events/media-literacy-recap',
-      rightOfReply: true
+      recapLink: "https://harvard.edu/events/media-literacy-recap",
+      rightOfReply: true,
     });
 
-    console.log('Sample data seeded successfully!');
+    console.log("Sample data seeded successfully!");
   }
 }
 
