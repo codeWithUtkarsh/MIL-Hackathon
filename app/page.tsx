@@ -5,6 +5,7 @@ import AmbassadorSigninPopup from "../components/AmbassadorSigninPopup";
 import CreatorSignupPopup from "../components/CreatorSignupPopup";
 import AmbassadorDashboardPage from "./ambassador-dashboard";
 import CreatorDashboardPage from "./creator-dashboard";
+import Header from "../components/Header";
 import { useAuth } from "../lib/auth-context";
 
 export default function Home() {
@@ -61,50 +62,8 @@ export default function Home() {
       {/* Dark overlay for better text readability */}
       <div className="absolute inset-0 bg-black/50 z-10"></div>
 
-      {/* Top Navigation */}
-      <nav className="relative z-30 flex justify-between items-center p-6">
-        <div className="flex items-center">
-          <div className="w-8 h-8 bg-amber-400 rounded-full mr-3"></div>
-          <div className="text-white font-bold text-xl">
-            MIL-CAN <span className="text-amber-400 font-normal">LITERACY</span>
-          </div>
-        </div>
-        <div className="flex items-center space-x-8">
-          <a
-            href="/"
-            className="text-white hover:text-amber-400 transition-colors font-medium"
-          >
-            Home
-          </a>
-          <a
-            href="#mission"
-            className="text-white hover:text-amber-400 transition-colors font-medium"
-          >
-            Mission
-          </a>
-          <a
-            href="#reviews"
-            className="text-white hover:text-amber-400 transition-colors font-medium"
-          >
-            Reviews
-          </a>
-          <a
-            href="/assets"
-            className="text-white hover:text-amber-400 transition-colors font-medium"
-          >
-            Resources
-          </a>
-          <a
-            href="/leaderboard"
-            className="text-white hover:text-amber-400 transition-colors font-medium"
-          >
-            Leaderboard
-          </a>
-          <button className="bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-black font-semibold px-6 py-2 rounded-full transition-all duration-300 transform hover:scale-105">
-            Creator Kit
-          </button>
-        </div>
-      </nav>
+      {/* Header Navigation */}
+      <Header />
 
       {/* Hero Section */}
       <section className="relative flex items-center justify-center min-h-screen px-4 z-20">

@@ -7,6 +7,7 @@ import {
   validateInvitationToken,
 } from "../lib/invitation-actions";
 import type { Invitation } from "../lib/types";
+import Header from "../components/Header";
 
 export default function AcceptInvitationPage() {
   const router = useRouter();
@@ -99,10 +100,13 @@ export default function AcceptInvitationPage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900/20 to-slate-900 flex items-center justify-center p-4">
-        <div className="bg-slate-800 rounded-xl border border-slate-600 p-8 w-full max-w-md text-center">
+      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-blue-900">
+        <Header />
+        <div className="flex items-center justify-center p-4 min-h-[calc(100vh-80px)]">
+          <div className="bg-slate-800 rounded-xl border border-slate-600 p-8 w-full max-w-md text-center">
           <div className="w-8 h-8 border-4 border-amber-400 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
           <p className="text-slate-300">Validating invitation...</p>
+          </div>
         </div>
       </div>
     );
@@ -110,8 +114,10 @@ export default function AcceptInvitationPage() {
 
   if (error && !invitation) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900/20 to-slate-900 flex items-center justify-center p-4">
-        <div className="bg-slate-800 rounded-xl border border-red-500/50 p-8 w-full max-w-md text-center">
+      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-blue-900">
+        <Header />
+        <div className="flex items-center justify-center p-4 min-h-[calc(100vh-80px)]">
+          <div className="bg-slate-800 rounded-xl border border-red-500/50 p-8 w-full max-w-md text-center">
           <div className="text-6xl mb-4">❌</div>
           <h1 className="text-2xl font-bold text-red-400 mb-4">
             Invalid Invitation
@@ -123,6 +129,7 @@ export default function AcceptInvitationPage() {
           >
             Back to Home
           </button>
+          </div>
         </div>
       </div>
     );
@@ -130,8 +137,10 @@ export default function AcceptInvitationPage() {
 
   if (success) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900/20 to-slate-900 flex items-center justify-center p-4">
-        <div className="bg-slate-800 rounded-xl border border-green-500/50 p-8 w-full max-w-md text-center">
+      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-blue-900">
+        <Header />
+        <div className="flex items-center justify-center p-4 min-h-[calc(100vh-80px)]">
+          <div className="bg-slate-800 rounded-xl border border-green-500/50 p-8 w-full max-w-md text-center">
           <div className="text-6xl mb-4">🎉</div>
           <h1 className="text-2xl font-bold text-green-400 mb-4">
             Welcome to MIL-CAN!
@@ -144,14 +153,17 @@ export default function AcceptInvitationPage() {
             <div className="w-4 h-4 border-2 border-amber-400 border-t-transparent rounded-full animate-spin"></div>
             <span>Redirecting...</span>
           </div>
+          </div>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900/20 to-slate-900 flex items-center justify-center p-4">
-      <div className="bg-slate-800 rounded-xl border border-slate-600 p-8 w-full max-w-2xl">
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-blue-900">
+      <Header />
+      <div className="container mx-auto px-4 py-8">
+        <div className="bg-slate-800 rounded-xl border border-slate-600 p-8 w-full max-w-2xl mx-auto">
         <div className="text-center mb-8">
           <div className="text-4xl mb-4">🎯</div>
           <h1 className="text-3xl font-bold text-amber-400 mb-2">
@@ -320,6 +332,8 @@ export default function AcceptInvitationPage() {
           <p className="text-slate-400 text-sm">
             By joining, you agree to our terms of service and privacy policy.
           </p>
+        </div>
+        </form>
         </div>
       </div>
     </div>

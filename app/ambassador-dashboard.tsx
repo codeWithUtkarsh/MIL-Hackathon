@@ -7,6 +7,7 @@ import ContentReviewPopup from "../components/ContentReviewPopup";
 import InviteAmbassadorModal from "../components/InviteAmbassadorModal";
 import AddCreatorModal from "../components/AddCreatorModal";
 import NetworkGraphModal from "../components/NetworkGraphModal";
+import Header from "../components/Header";
 import {
   resendInvitationAction,
   revokeInvitationAction,
@@ -208,6 +209,8 @@ export default function AmbassadorDashboardPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-blue-900 relative overflow-hidden">
+      <Header />
+
       {/* Animated Background Elements */}
       <div className="absolute inset-0 overflow-hidden">
         <div
@@ -225,17 +228,6 @@ export default function AmbassadorDashboardPage() {
       </div>
 
       <div className="relative z-10 container mx-auto px-4 py-8">
-        {/* Navigation Header */}
-        <div className="mb-6">
-          <button
-            onClick={() => window.location.reload()}
-            className="flex items-center gap-2 px-4 py-2 bg-slate-800/50 hover:bg-slate-700/50 border border-amber-400/30 hover:border-amber-400/50 rounded-lg text-slate-300 hover:text-amber-400 transition-all duration-200"
-          >
-            <span>←</span>
-            <span>Back to Home</span>
-          </button>
-        </div>
-
         {/* Header */}
         <div className="mb-8">
           <div className="flex items-center gap-4 mb-4">
