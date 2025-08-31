@@ -16,6 +16,10 @@ npm run build
 
 # Start production server
 npm start
+
+# Test build locally before deployment
+chmod +x test-build.sh
+./test-build.sh
 ```
 
 ## 🧹 Cleanup Project
@@ -91,12 +95,39 @@ mil-can/
 
 ## 🚢 Deployment
 
-The app is configured for easy deployment on Vercel:
+### Netlify Deployment
 
+The app is configured for Netlify deployment with the included `netlify.toml` file.
+
+**Correct Netlify Build Settings:**
+- **Runtime:** Next.js
+- **Base directory:** `/`
+- **Build command:** `npm run build`
+- **Publish directory:** `.next` *(Important: NOT "build")*
+- **Functions directory:** Leave empty or "Not set"
+
+⚠️ **Important**: The publish directory must be `.next`, not `build`. Next.js outputs to `.next` directory.
+
+**Steps to Deploy:**
+1. Test build locally: `npm run build`
+2. Push your code to GitHub
+3. Connect your GitHub repository to Netlify
+4. Ensure Publish directory is set to `.next`
+5. Click "Deploy site"
+
+**Troubleshooting Build Errors:**
+- If you see JSX syntax errors, check for mismatched tags
+- If you see TypeScript errors, run `npm run build` locally first
+- The `netlify.toml` file includes all necessary configuration
+
+**Alternative: Deploy to Vercel**
+
+For Vercel deployment:
 1. Push to GitHub
-2. Connect repository to Vercel
+2. Import project in Vercel
 3. Deploy with default Next.js settings
-4. No environment variables required
+
+No environment variables are required for either platform.
 
 ## 📝 License
 

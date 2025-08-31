@@ -3,11 +3,13 @@ const nextConfig = {
   reactStrictMode: true,
   swcMinify: true,
   images: {
-    domains: ['localhost'],
+    domains: ["localhost"],
+    unoptimized: true,
   },
+  output: "standalone",
   experimental: {
     typedRoutes: true,
   },
-}
+};
 
-module.exports = nextConfig
+module.exports = nextConfig;
