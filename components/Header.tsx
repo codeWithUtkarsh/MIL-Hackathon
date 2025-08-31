@@ -2,10 +2,12 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
+import { useAuth } from "../lib/auth-context";
 
 export default function Header() {
   const pathname = usePathname();
   const router = useRouter();
+  const { user, isAuthenticated, logout } = useAuth();
 
   const isActive = (path: string) => {
     return pathname === path;
@@ -85,6 +87,18 @@ export default function Header() {
         >
           Creator Kit
         </Link>
+        {isAuthenticated && (
+          <>
+            <div className="w-4"></div>
+            <button
+              onClick={logout}
+              className="bg-gradient-to-r from-slate-600 to-slate-700 hover:from-slate-500 hover:to-slate-600 text-white font-semibold px-6 py-2 rounded-full transition-all duration-300 transform hover:scale-105 flex items-center gap-2"
+            >
+              <span className="text-sm">🚪</span>
+              Sign Out
+            </button>
+          </>
+        )}
       </div>
     </nav>
   );
