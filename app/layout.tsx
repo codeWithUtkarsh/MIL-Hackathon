@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
 import { AuthProvider } from "../lib/auth-context";
-import HeaderClient from "../components/HeaderClient";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -22,7 +21,6 @@ export default function RootLayout({
       <body className={inter.className}>
         <AuthProvider>
           <div className="min-h-screen">
-            <HeaderClient />
             <main className="relative">{children}</main>
             <footer className="bg-gradient-to-r from-purple-900 to-slate-900 border-t border-amber-400/30">
               <div className="container mx-auto px-4 py-8">

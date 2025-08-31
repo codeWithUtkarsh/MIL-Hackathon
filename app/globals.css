@@ -196,3 +196,16 @@ body {
 .animate-gentle-pulse {
     animation: gentlePulse 5s ease-in-out infinite;
 }
+
+@keyframes scrollLeft {
+    0% {
+        transform: translateX(0);
+    }
+    100% {
+        transform: translateX(-100%);
+    }
+}
+
+.animate-scroll-left {
+    animation: scrollLeft 20s linear infinite;
+}

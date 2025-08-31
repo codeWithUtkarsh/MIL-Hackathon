@@ -42,156 +42,146 @@ export default function Home() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-purple-900 relative overflow-hidden">
-      {/* Animated Background Elements */}
-      <div className="absolute inset-0 overflow-hidden">
-        {/* Floating Knowledge Particles */}
-        <div
-          className="absolute top-20 left-10 w-3 h-3 bg-amber-400/40 rounded-full animate-float"
-          style={{ animationDelay: "0s" }}
-        ></div>
-        <div
-          className="absolute top-32 right-20 w-2 h-2 bg-purple-400/50 rounded-full animate-sparkle"
-          style={{ animationDelay: "1s" }}
-        ></div>
-        <div
-          className="absolute top-64 left-1/4 w-2.5 h-2.5 bg-blue-400/45 rounded-full animate-float-slow"
-          style={{ animationDelay: "2s" }}
-        ></div>
-        <div
-          className="absolute top-80 right-1/3 w-1.5 h-1.5 bg-amber-300/35 rounded-full animate-sparkle"
-          style={{ animationDelay: "3s" }}
-        ></div>
-        <div
-          className="absolute bottom-40 left-20 w-3 h-3 bg-purple-300/40 rounded-full animate-float"
-          style={{ animationDelay: "1.5s" }}
-        ></div>
-        <div
-          className="absolute bottom-60 right-16 w-2 h-2 bg-blue-300/50 rounded-full animate-float-slow"
-          style={{ animationDelay: "2.5s" }}
-        ></div>
-        <div
-          className="absolute top-1/3 left-3/4 w-2 h-2 bg-yellow-400/40 rounded-full animate-sparkle"
-          style={{ animationDelay: "4s" }}
-        ></div>
-        <div
-          className="absolute bottom-1/4 right-1/2 w-1.5 h-1.5 bg-indigo-400/35 rounded-full animate-float"
-          style={{ animationDelay: "5s" }}
-        ></div>
+    <div className="min-h-screen relative overflow-hidden">
+      {/* Video Background */}
+      <video
+        autoPlay
+        muted
+        loop
+        playsInline
+        className="absolute top-0 left-0 w-full h-full object-cover z-0"
+        style={{
+          width: "100vw",
+          height: "100vh",
+        }}
+      >
+        <source src="/background.mp4" type="video/mp4" />
+      </video>
 
-        {/* Glowing Educational Orbs */}
-        <div
-          className="absolute top-1/4 left-1/6 w-24 h-24 bg-gradient-to-r from-amber-400/15 to-yellow-400/15 rounded-full blur-md animate-glow"
-          style={{ animationDelay: "0s" }}
-        ></div>
-        <div
-          className="absolute top-1/2 right-1/5 w-20 h-20 bg-gradient-to-r from-purple-400/20 to-blue-400/20 rounded-full blur-md animate-gentle-pulse"
-          style={{ animationDelay: "2s" }}
-        ></div>
-        <div
-          className="absolute bottom-1/3 left-1/3 w-28 h-28 bg-gradient-to-r from-blue-400/12 to-purple-400/12 rounded-full blur-lg animate-glow"
-          style={{ animationDelay: "1s" }}
-        ></div>
-        <div
-          className="absolute top-16 right-1/3 w-16 h-16 bg-gradient-to-r from-indigo-400/18 to-cyan-400/18 rounded-full blur-sm animate-gentle-pulse"
-          style={{ animationDelay: "3s" }}
-        ></div>
+      {/* Dark overlay for better text readability */}
+      <div className="absolute inset-0 bg-black/50 z-10"></div>
 
-        {/* Sliding Knowledge Streams */}
-        <div className="absolute top-0 left-0 w-full h-full">
-          <div
-            className="absolute top-1/4 left-0 w-full h-0.5 bg-gradient-to-r from-transparent via-amber-400/30 to-transparent animate-slide-across"
-            style={{ animationDelay: "0s" }}
-          ></div>
-          <div
-            className="absolute top-1/2 left-0 w-full h-px bg-gradient-to-r from-transparent via-purple-400/25 to-transparent animate-slide-across"
-            style={{ animationDelay: "5s" }}
-          ></div>
-          <div
-            className="absolute top-3/4 left-0 w-full h-0.5 bg-gradient-to-r from-transparent via-blue-400/30 to-transparent animate-slide-across"
-            style={{ animationDelay: "10s" }}
-          ></div>
-          <div
-            className="absolute top-1/6 left-0 w-full h-px bg-gradient-to-r from-transparent via-cyan-400/20 to-transparent animate-slide-across"
-            style={{ animationDelay: "12s" }}
-          ></div>
+      {/* Top Navigation */}
+      <nav className="relative z-30 flex justify-between items-center p-6">
+        <div className="flex items-center">
+          <div className="w-8 h-8 bg-amber-400 rounded-full mr-3"></div>
+          <div className="text-white font-bold text-xl">
+            MIL-CAN <span className="text-amber-400 font-normal">LITERACY</span>
+          </div>
         </div>
+        <div className="flex items-center space-x-8">
+          <a
+            href="/"
+            className="text-white hover:text-amber-400 transition-colors font-medium"
+          >
+            Home
+          </a>
+          <a
+            href="#mission"
+            className="text-white hover:text-amber-400 transition-colors font-medium"
+          >
+            Mission
+          </a>
+          <a
+            href="#reviews"
+            className="text-white hover:text-amber-400 transition-colors font-medium"
+          >
+            Reviews
+          </a>
+          <a
+            href="/assets"
+            className="text-white hover:text-amber-400 transition-colors font-medium"
+          >
+            Resources
+          </a>
+          <a
+            href="/leaderboard"
+            className="text-white hover:text-amber-400 transition-colors font-medium"
+          >
+            Leaderboard
+          </a>
+          <button className="bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-black font-semibold px-6 py-2 rounded-full transition-all duration-300 transform hover:scale-105">
+            Creator Kit
+          </button>
+        </div>
+      </nav>
 
-        {/* Educational Symbol Shapes */}
-        <div
-          className="absolute top-16 right-1/4 w-10 h-10 border-2 border-amber-400/25 rotate-45 animate-spin"
-          style={{ animationDuration: "20s" }}
-        >
-          <div className="w-full h-full border border-amber-400/15 rotate-45"></div>
-        </div>
-        <div
-          className="absolute bottom-32 left-1/5 w-8 h-8 border-2 border-purple-400/30 rotate-12 animate-spin"
-          style={{ animationDuration: "15s", animationDirection: "reverse" }}
-        >
-          <div className="w-2 h-2 bg-purple-400/20 rounded-full absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2"></div>
-        </div>
-        <div
-          className="absolute top-1/3 left-1/2 w-6 h-6 border-2 border-blue-400/35 rotate-90 animate-spin"
-          style={{ animationDuration: "25s" }}
-        >
-          <div className="w-1 h-1 bg-blue-400/25 rounded-full absolute top-1 left-1"></div>
-          <div className="w-1 h-1 bg-blue-400/25 rounded-full absolute bottom-1 right-1"></div>
-        </div>
-
-        {/* Floating Book/Knowledge Icons */}
-        <div
-          className="absolute top-40 left-1/6 text-2xl text-amber-400/20 animate-float"
-          style={{ animationDelay: "2s" }}
-        >
-          📚
-        </div>
-        <div
-          className="absolute top-2/3 right-1/4 text-xl text-purple-400/25 animate-float-slow"
-          style={{ animationDelay: "4s" }}
-        >
-          💡
-        </div>
-        <div
-          className="absolute bottom-1/2 left-2/3 text-lg text-blue-400/30 animate-sparkle"
-          style={{ animationDelay: "6s" }}
-        >
-          🎓
-        </div>
-        <div
-          className="absolute top-1/2 left-1/12 text-xl text-cyan-400/20 animate-float"
-          style={{ animationDelay: "8s" }}
-        >
-          🧠
-        </div>
-      </div>
       {/* Hero Section */}
-      <section className="relative py-20 px-4">
-        <div className="absolute inset-0 bg-black/30"></div>
-        <div className="relative max-w-6xl mx-auto text-center">
-          <div className="mb-6">
-            <div className="inline-block px-4 py-2 bg-amber-500/20 border border-amber-400/40 rounded-full mb-4">
+      <section className="relative flex items-center justify-center min-h-screen px-4 z-20">
+        <div className="text-center max-w-4xl mx-auto">
+          <div className="mb-8">
+            <div className="inline-block px-4 py-2 bg-amber-500/20 border border-amber-400/40 rounded-full mb-8">
               <span className="text-amber-400 font-semibold tracking-wider text-sm">
-                ✨ EMPOWERING DIGITAL LITERACY ✨
+                ✨ EMPOWERING DIGITAL LITERACY
               </span>
             </div>
           </div>
-          <h1 className="text-6xl md:text-7xl font-black mb-6 bg-gradient-to-r from-amber-400 via-yellow-300 to-amber-400 bg-clip-text text-transparent">
+
+          <h1
+            className="text-6xl md:text-8xl font-black mb-8 text-purple-400"
+            style={{
+              textShadow: `
+                0 0 20px rgba(168, 85, 247, 0.8),
+                0 0 40px rgba(168, 85, 247, 0.6),
+                0 0 60px rgba(168, 85, 247, 0.4)
+              `,
+            }}
+          >
             MIL-CAN
           </h1>
-          <div className="text-slate-300 text-lg md:text-xl mb-2 tracking-[0.2em]">
+
+          <div className="text-white text-2xl md:text-3xl mb-4 font-bold tracking-wider">
             MEDIA & INFORMATION LITERACY
           </div>
-          <div className="text-amber-400 text-xl md:text-2xl font-bold mb-8 tracking-wider">
+          <div className="text-purple-300 text-xl md:text-2xl font-bold mb-12 tracking-wider">
             CREATORS & AMBASSADORS NETWORK
           </div>
-          <p className="text-xl text-slate-300 mb-12 max-w-3xl mx-auto leading-relaxed">
+
+          <p className="text-lg text-slate-300 mb-16 max-w-3xl mx-auto leading-relaxed">
             Join a community of educators, content creators, and literacy
             advocates working together to combat misinformation and promote
             critical thinking in the digital age.
           </p>
 
-          {/* Sign In Options */}
-          <div className="flex flex-col sm:flex-row gap-6 justify-center items-center mb-8">
+          {/* Statistics Cards */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mb-12 max-w-4xl mx-auto">
+            <div className="bg-black/30 backdrop-blur-sm border border-gray-700 rounded-lg p-6 text-center">
+              <div className="text-3xl mb-2">👤</div>
+              <div className="text-amber-400 text-3xl font-bold mb-1">
+                1,247
+              </div>
+              <div className="text-gray-300 text-sm">Active Creators</div>
+            </div>
+            <div className="bg-black/30 backdrop-blur-sm border border-gray-700 rounded-lg p-6 text-center">
+              <div className="text-3xl mb-2">🎓</div>
+              <div className="text-purple-400 text-3xl font-bold mb-1">368</div>
+              <div className="text-gray-300 text-sm">Ambassadors</div>
+            </div>
+            <div className="bg-black/30 backdrop-blur-sm border border-gray-700 rounded-lg p-6 text-center">
+              <div className="text-3xl mb-2">📄</div>
+              <div className="text-pink-400 text-3xl font-bold mb-1">15420</div>
+              <div className="text-gray-300 text-sm">Content Pieces</div>
+            </div>
+            <div className="bg-black/30 backdrop-blur-sm border border-gray-700 rounded-lg p-6 text-center">
+              <div className="text-3xl mb-2">🎪</div>
+              <div className="text-red-400 text-3xl font-bold mb-1">892</div>
+              <div className="text-gray-300 text-sm">Events Hosted</div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Ambassador and Creator Sign Up Options */}
+      <section className="relative py-20 px-4 z-20 bg-black/40">
+        <div className="max-w-4xl mx-auto text-center">
+          <h2 className="text-3xl font-bold text-white mb-4">
+            Ready to Get Started?
+          </h2>
+          <p className="text-slate-300 mb-12 text-lg">
+            Choose your path and join our community today
+          </p>
+
+          <div className="flex flex-col sm:flex-row gap-6 justify-center items-center">
             {isAuthenticated ? (
               <div className="text-center">
                 <div className="text-amber-400 font-bold text-lg mb-2">
@@ -217,27 +207,29 @@ export default function Home() {
                 </button>
               </div>
             ) : (
-              <button
-                onClick={() => setShowAmbassadorPopup(true)}
-                className="group relative px-8 py-4 bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-500 hover:to-purple-600 text-white font-bold rounded-xl transition-all duration-300 transform hover:scale-105 hover:shadow-xl hover:shadow-purple-500/25 min-w-[280px]"
-              >
-                <div className="absolute inset-0 bg-purple-400 opacity-0 group-hover:opacity-20 transition-opacity duration-300"></div>
-                <span className="relative flex items-center gap-2">
-                  🎓 Ambassador Sign In
-                </span>
-              </button>
+              <>
+                <button
+                  onClick={() => setShowAmbassadorPopup(true)}
+                  className="group relative px-8 py-4 bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-500 hover:to-purple-600 text-white font-bold rounded-xl transition-all duration-300 transform hover:scale-105 hover:shadow-xl hover:shadow-purple-500/25 min-w-[280px]"
+                >
+                  <div className="absolute inset-0 bg-purple-400 opacity-0 group-hover:opacity-20 transition-opacity duration-300"></div>
+                  <span className="relative flex items-center gap-2">
+                    🎓 Ambassador Sign In
+                  </span>
+                </button>
+                <button
+                  onClick={() => setShowCreatorPopup(true)}
+                  className="group px-8 py-4 bg-gradient-to-r from-amber-500 to-yellow-500 text-slate-900 font-bold rounded-lg shadow-2xl hover:shadow-amber-500/25 transition-all duration-300 transform hover:scale-105 min-w-[280px]"
+                >
+                  <span className="flex items-center gap-2">
+                    ✍️ Creator Sign Up
+                  </span>
+                </button>
+              </>
             )}
-            <button
-              onClick={() => setShowCreatorPopup(true)}
-              className="group px-8 py-4 bg-gradient-to-r from-amber-500 to-yellow-500 text-slate-900 font-bold rounded-lg shadow-2xl hover:shadow-amber-500/25 transition-all duration-300 transform hover:scale-105"
-            >
-              <span className="flex items-center gap-2">
-                ✍️ Creator Sign Up
-              </span>
-            </button>
           </div>
 
-          <div className="text-sm text-slate-400">
+          <div className="text-sm text-slate-400 mt-4">
             {isAuthenticated ? (
               <>
                 Authenticated as {user?.name} • Role: {user?.role}
@@ -250,7 +242,7 @@ export default function Home() {
       </section>
 
       {/* Mission Section */}
-      <section className="py-16 px-4 bg-black/40">
+      <section className="py-16 px-4 bg-black/50 relative z-20">
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-12">
             <h2 className="text-3xl md:text-4xl font-bold text-amber-400 mb-4">
@@ -338,46 +330,8 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Features Section */}
-      <section className="py-16 px-4 bg-gradient-to-r from-blue-900/30 to-purple-800/20">
-        <div className="max-w-4xl mx-auto text-center">
-          <h2 className="text-3xl font-bold text-amber-400 mb-8">
-            🏆 Platform Features
-          </h2>
-          <div className="grid md:grid-cols-3 gap-8">
-            <div className="group p-6 bg-black/30 rounded-lg border border-amber-400/30 hover:border-amber-400/60 transition-all duration-300 hover:transform hover:scale-105 hover:bg-black/40 cursor-pointer">
-              <div className="text-3xl mb-4 group-hover:animate-bounce">📊</div>
-              <div className="text-xl font-bold text-amber-400 mb-2 group-hover:text-amber-300 transition-colors duration-300">
-                Leaderboard
-              </div>
-              <div className="text-slate-300 group-hover:text-slate-200 transition-colors duration-300">
-                Track contributions and achievements
-              </div>
-            </div>
-            <div className="group p-6 bg-black/30 rounded-lg border border-amber-400/30 hover:border-amber-400/60 transition-all duration-300 hover:transform hover:scale-105 hover:bg-black/40 cursor-pointer">
-              <div className="text-3xl mb-4 group-hover:animate-pulse">🎒</div>
-              <div className="text-xl font-bold text-amber-400 mb-2 group-hover:text-amber-300 transition-colors duration-300">
-                Creator Kit
-              </div>
-              <div className="text-slate-300 group-hover:text-slate-200 transition-colors duration-300">
-                Tools and resources for content creation
-              </div>
-            </div>
-            <div className="group p-6 bg-black/30 rounded-lg border border-amber-400/30 hover:border-amber-400/60 transition-all duration-300 hover:transform hover:scale-105 hover:bg-black/40 cursor-pointer">
-              <div className="text-3xl mb-4 group-hover:animate-bounce">📚</div>
-              <div className="text-xl font-bold text-amber-400 mb-2 group-hover:text-amber-300 transition-colors duration-300">
-                Asset Library
-              </div>
-              <div className="text-slate-300 group-hover:text-slate-200 transition-colors duration-300">
-                Browse and share educational resources
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
       {/* Call to Action */}
-      <section className="py-20 px-4 bg-gradient-to-t from-black to-transparent">
+      <section className="py-20 px-4 bg-black/60 relative z-20">
         <div className="max-w-4xl mx-auto text-center">
           <h2 className="text-4xl font-bold text-amber-400 mb-6">
             Ready to Make an Impact?
@@ -399,6 +353,103 @@ export default function Home() {
             >
               📚 Browse Resources
             </a>
+          </div>
+        </div>
+      </section>
+
+      {/* What Our Community Says */}
+      <section className="py-20 px-4 bg-gradient-to-r from-purple-800 to-purple-900 relative z-20">
+        <div className="max-w-7xl mx-auto">
+          <div className="text-center mb-16">
+            <h2 className="text-4xl font-bold text-white mb-4 flex items-center justify-center gap-3">
+              💬 What Our Community Says
+            </h2>
+            <p className="text-lg text-purple-200 max-w-3xl mx-auto">
+              Real testimonials from creators and ambassadors making an impact
+              in digital literacy education.
+            </p>
+          </div>
+
+          <div className="overflow-hidden">
+            <div className="flex gap-6 animate-scroll-left">
+              {/* Carlos Martinez */}
+              <div className="bg-black/30 backdrop-blur-sm border border-purple-400/30 rounded-xl p-6 hover:border-purple-400/60 transition-all duration-300 flex-shrink-0 w-80">
+                <div className="flex items-center mb-4">
+                  <div className="w-12 h-12 bg-amber-400 rounded-full flex items-center justify-center text-2xl mr-3">
+                    👨‍🏫
+                  </div>
+                  <div>
+                    <div className="text-white font-bold">Carlos Martinez</div>
+                    <div className="text-amber-400 text-sm">
+                      High School Teacher
+                    </div>
+                  </div>
+                </div>
+                <p className="text-purple-200 text-sm leading-relaxed">
+                  "My students love the interactive content and real-world
+                  applications. Finally, media literacy that actually engages!"
+                </p>
+              </div>
+
+              {/* Dr. Sarah Chen */}
+              <div className="bg-black/30 backdrop-blur-sm border border-purple-400/30 rounded-xl p-6 hover:border-purple-400/60 transition-all duration-300 flex-shrink-0 w-80">
+                <div className="flex items-center mb-4">
+                  <div className="w-12 h-12 bg-purple-400 rounded-full flex items-center justify-center text-2xl mr-3">
+                    👩‍💼
+                  </div>
+                  <div>
+                    <div className="text-white font-bold">Dr. Sarah Chen</div>
+                    <div className="text-amber-400 text-sm">
+                      Digital Literacy Ambassador
+                    </div>
+                  </div>
+                </div>
+                <p className="text-purple-200 text-sm leading-relaxed">
+                  "MIL-CAN transformed how I teach media literacy. The creator
+                  resources are incredible and my students are more engaged than
+                  ever."
+                </p>
+              </div>
+
+              {/* Alex Rodriguez */}
+              <div className="bg-black/30 backdrop-blur-sm border border-purple-400/30 rounded-xl p-6 hover:border-purple-400/60 transition-all duration-300 flex-shrink-0 w-80">
+                <div className="flex items-center mb-4">
+                  <div className="w-12 h-12 bg-blue-400 rounded-full flex items-center justify-center text-2xl mr-3">
+                    👨‍💻
+                  </div>
+                  <div>
+                    <div className="text-white font-bold">Alex Rodriguez</div>
+                    <div className="text-amber-400 text-sm">
+                      Content Creator
+                    </div>
+                  </div>
+                </div>
+                <p className="text-purple-200 text-sm leading-relaxed">
+                  "The badge system keeps me motivated and the AI assistant
+                  helps me create better educational content. Love this
+                  community!"
+                </p>
+              </div>
+
+              {/* Maria Silva */}
+              <div className="bg-black/30 backdrop-blur-sm border border-purple-400/30 rounded-xl p-6 hover:border-purple-400/60 transition-all duration-300 flex-shrink-0 w-80">
+                <div className="flex items-center mb-4">
+                  <div className="w-12 h-12 bg-pink-400 rounded-full flex items-center justify-center text-2xl mr-3">
+                    👩‍🎓
+                  </div>
+                  <div>
+                    <div className="text-white font-bold">Maria Silva</div>
+                    <div className="text-amber-400 text-sm">
+                      Campus Ambassador
+                    </div>
+                  </div>
+                </div>
+                <p className="text-purple-200 text-sm leading-relaxed">
+                  "Running MIL events on campus has been amazing. The platform's
+                  resources make it easy to teach students effectively."
+                </p>
+              </div>
+            </div>
           </div>
         </div>
       </section>
