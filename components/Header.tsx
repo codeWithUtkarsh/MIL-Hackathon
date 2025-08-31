@@ -16,26 +16,31 @@ export default function Header() {
     window.location.href = `/?section=${section}#${section}`;
   };
 
+  const navigateToHome = () => {
+    // Force a full page reload to reset any React state and navigate to home
+    window.location.href = "/?view=home";
+  };
+
   return (
     <nav className="relative z-30 flex justify-between items-center p-6 border-b border-amber-400/20">
       <div className="flex items-center">
         <div className="w-8 h-8 bg-amber-400 rounded-full mr-3"></div>
-        <Link
-          href="/"
+        <button
+          onClick={navigateToHome}
           className="text-white font-bold text-xl hover:text-amber-400 transition-colors"
         >
           MIL-CAN <span className="text-amber-400 font-normal">LITERACY</span>
-        </Link>
+        </button>
       </div>
       <div className="flex items-center space-x-8">
-        <Link
-          href="/"
+        <button
+          onClick={navigateToHome}
           className={`font-medium transition-colors ${
             isActive("/") ? "text-amber-400" : "text-white hover:text-amber-400"
           }`}
         >
           Home
-        </Link>
+        </button>
         <button
           onClick={() => navigateToHomeSection("mission")}
           className="text-white hover:text-amber-400 transition-colors font-medium"
