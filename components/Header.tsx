@@ -85,12 +85,64 @@ export default function Header() {
         >
           Ambassadors
         </Link>
+        {/* Option 1: Subtle ribbon badge */}
         <Link
           href="/kit"
-          className="bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-black font-semibold px-6 py-2 rounded-full transition-all duration-300 transform hover:scale-105"
+          className="relative bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-black font-semibold px-6 py-2 rounded-full transition-all duration-300 transform hover:scale-105"
         >
           Creator Kit
+          <span className="absolute -top-2 -right-3 bg-gradient-to-r from-purple-600 to-purple-500 text-white text-[10px] px-2 py-0.5 rounded-full font-bold shadow-sm">
+            SOON
+          </span>
         </Link>
+
+        {/* Option 2: Lock icon with tooltip effect */}
+        {/* <div className="relative group">
+          <Link
+            href="/kit"
+            className="flex items-center gap-2 bg-gradient-to-r from-amber-500/50 to-orange-500/50 text-black/60 font-semibold px-6 py-2 rounded-full cursor-not-allowed"
+          >
+            <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+              <path fillRule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" />
+            </svg>
+            Creator Kit
+          </Link>
+          <span className="absolute -bottom-8 left-1/2 transform -translate-x-1/2 bg-slate-800 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
+            Launching January 2024
+          </span>
+        </div> */}
+
+        {/* Option 3: Countdown style */}
+        {/* <Link
+          href="/kit"
+          className="relative bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-black font-semibold px-6 py-2 rounded-full transition-all duration-300 transform hover:scale-105"
+        >
+          <span className="flex items-center gap-2">
+            Creator Kit
+            <span className="bg-black/20 text-white text-xs px-2 py-0.5 rounded">
+              15 days
+            </span>
+          </span>
+        </Link> */}
+
+        {/* Option 4: Beta badge style */}
+        {/* <Link
+          href="/kit"
+          className="relative bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-black font-semibold px-6 py-2 rounded-full transition-all duration-300 transform hover:scale-105"
+        >
+          Creator Kit
+          <sup className="ml-1 text-xs font-bold text-purple-600">BETA</sup>
+        </Link> */}
+
+        {/* Option 5: Notification dot */}
+        {/* <Link
+          href="/kit"
+          className="relative bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-black font-semibold px-6 py-2 rounded-full transition-all duration-300 transform hover:scale-105"
+        >
+          Creator Kit
+          <span className="absolute -top-1 -right-1 h-3 w-3 bg-purple-500 rounded-full animate-ping"></span>
+          <span className="absolute -top-1 -right-1 h-3 w-3 bg-purple-500 rounded-full"></span>
+        </Link> */}
         {isAuthenticated && (
           <>
             <div className="w-4"></div>
