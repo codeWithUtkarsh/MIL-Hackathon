@@ -5,6 +5,7 @@ import type {
   Activity,
   DashboardStats,
   AssetReview,
+  AmbassadorNetwork,
 } from "./types";
 import { ulid } from "ulid";
 
@@ -25,6 +26,7 @@ export class SimpleDatabaseService {
   private assets: Asset[] = [];
   private events: Event[] = [];
   private activities: Activity[] = [];
+  private networks: AmbassadorNetwork[] = [];
 
   // Member operations
   async createMember(
@@ -288,6 +290,39 @@ export class SimpleDatabaseService {
     return sorted.slice(0, limit);
   }
 
+  // Network operations
+  async getAllNetworks(): Promise<AmbassadorNetwork[]> {
+    return [...this.networks];
+  }
+
+  async getNetworksByAmbassador(
+    ambassadorId: string,
+  ): Promise<AmbassadorNetwork[]> {
+    return this.networks.filter(
+      (n) => n.ambassadorId === ambassadorId && n.status === "active",
+    );
+  }
+
+  async createNetwork(
+    network: Omit<AmbassadorNetwork, "id">,
+  ): Promise<AmbassadorNetwork> {
+    const newNetwork: AmbassadorNetwork = {
+      ...network,
+      id: ulid(),
+    };
+    this.networks.push(newNetwork);
+    return newNetwork;
+  }
+
+  async removeNetwork(networkId: string): Promise<boolean> {
+    const index = this.networks.findIndex((n) => n.id === networkId);
+    if (index > -1) {
+      this.networks.splice(index, 1);
+      return true;
+    }
+    return false;
+  }
+
   // Dashboard operations
   async getDashboardStats(): Promise<DashboardStats> {
     const activeCreators = this.members.filter(
@@ -313,6 +348,17 @@ export class SimpleDatabaseService {
       totalEvents: this.events.length,
       lastUpdated: new Date().toISOString(),
     };
+  }
+
+  // Reset all data for testing purposes
+  async resetData(): Promise<void> {
+    this.members = [];
+    this.assets = [];
+    this.events = [];
+    this.activities = [];
+    this.networks = [];
+    this.isInitialized = false;
+    console.log("All data cleared for testing");
   }
 
   // Seed some sample data if database is empty
@@ -460,6 +506,73 @@ export class SimpleDatabaseService {
       isActive: true,
     });
 
+    // Create sample network connections between ambassador and creators
+    for (const creator of createdCreators) {
+      const network: AmbassadorNetwork = {
+        id: ulid(),
+        ambassadorId: ambassador.id,
+        creatorId: creator.id,
+        addedAt: new Date(
+          Date.now() - Math.random() * 86400000 * 10,
+        ).toISOString(), // Random date within last 10 days
+        status: "active",
+        notes: `Connected ${creator.name} to network for ${creator.campus} collaboration`,
+      };
+
+      this.networks.push(network);
+    }
+
+    // Create both admin users from auth service as members for network connections
+    const authUsers = [
+      {
+        name: "Utkarsh Sharma",
+        email: "utkarshkviim@gmail.com",
+        handle: "@utkarshkviim",
+        campus: "Demo University",
+        languages: ["English", "Hindi"],
+        points: 200,
+      },
+      {
+        name: "Farheen Imam",
+        email: "farheenimam331@gmail.com",
+        handle: "@farheenimam331",
+        campus: "Demo University",
+        languages: ["English"],
+        points: 120,
+      },
+    ];
+
+    const adminUsers = [];
+    for (const authUser of authUsers) {
+      const adminUser = await this.createMember({
+        role: "ambassador", // Changed to ambassador so they can have network connections
+        name: authUser.name,
+        email: authUser.email,
+        handle: authUser.handle,
+        campus: authUser.campus,
+        languages: authUser.languages,
+        points: authUser.points,
+        isActive: true,
+      });
+      adminUsers.push(adminUser);
+
+      // Connect each admin user to all creators for demo purposes
+      for (const creator of createdCreators) {
+        const adminNetwork: AmbassadorNetwork = {
+          id: ulid(),
+          ambassadorId: adminUser.id,
+          creatorId: creator.id,
+          addedAt: new Date(
+            Date.now() - Math.random() * 86400000 * 15,
+          ).toISOString(), // Random date within last 15 days
+          status: "active",
+          notes: `Network connection with ${creator.name} from ${creator.campus}`,
+        };
+
+        this.networks.push(adminNetwork);
+      }
+    }
+
     // Create sample event
     await this.createEvent({
       ambassadorId: ambassador.id,
@@ -475,6 +588,25 @@ export class SimpleDatabaseService {
     });
 
     console.log("Sample data seeded successfully!");
+
+    // Development helper: log instructions for clearing data
+    if (process.env.NODE_ENV === "development") {
+      console.log(
+        "🔧 Development tip: To reset data and test new seed data, run in browser console:",
+      );
+      console.log("localStorage.clear(); location.reload();");
+      console.log("Or call: window.resetDemoData() to force reset");
+
+      // Add global helper function for development
+      (window as any).resetDemoData = async () => {
+        console.log("🔄 Resetting demo data...");
+        await this.resetData();
+        await this.seedSampleData();
+        console.log(
+          "✅ Demo data reset complete! Reload the page to see changes.",
+        );
+      };
+    }
   }
 }
 

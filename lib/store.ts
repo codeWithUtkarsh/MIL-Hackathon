@@ -749,7 +749,20 @@ export const useStore = create<StoreState>()(
         const currentUser = state.currentUser;
         const effectiveAmbassadorId = ambassadorId || currentUser?.id;
 
-        if (!effectiveAmbassadorId) return [];
+        // Debug logging
+        if (process.env.NODE_ENV === "development") {
+          console.log("🔍 getNetworkCreators Debug:");
+          console.log("  ambassadorId param:", ambassadorId);
+          console.log("  currentUser:", currentUser);
+          console.log("  effectiveAmbassadorId:", effectiveAmbassadorId);
+          console.log("  all networks:", state.networks);
+          console.log("  all members:", state.members);
+        }
+
+        if (!effectiveAmbassadorId) {
+          console.log("❌ No effective ambassador ID, returning empty array");
+          return [];
+        }
 
         const networkCreatorIds = state.networks
           .filter(
@@ -758,7 +771,22 @@ export const useStore = create<StoreState>()(
           )
           .map((n) => n.creatorId);
 
-        return state.members.filter((m) => networkCreatorIds.includes(m.id));
+        const result = state.members.filter((m) =>
+          networkCreatorIds.includes(m.id),
+        );
+
+        if (process.env.NODE_ENV === "development") {
+          console.log(
+            "  filtered networks:",
+            state.networks.filter(
+              (n) => n.ambassadorId === effectiveAmbassadorId,
+            ),
+          );
+          console.log("  network creator IDs:", networkCreatorIds);
+          console.log("  result creators:", result);
+        }
+
+        return result;
       },
 
       // Points actions
@@ -860,6 +888,20 @@ export const useStore = create<StoreState>()(
         })();
       },
 
+      loadNetworks: () => {
+        (async () => {
+          try {
+            console.log("Store: Loading networks from database...");
+            const networks = await simpleDbService.getAllNetworks();
+            console.log("Store: Loaded networks:", networks.length, "networks");
+            set({ networks });
+            console.log("Store: Networks state updated");
+          } catch (error) {
+            console.error("Error loading networks:", error);
+          }
+        })();
+      },
+
       // Initialize data from database
       initializeData: () => {
         (async () => {
@@ -873,6 +915,7 @@ export const useStore = create<StoreState>()(
               get().loadAssets(),
               get().loadEvents(),
               get().loadActivities(),
+              get().loadNetworks(),
             ]);
 
             // Refresh stats

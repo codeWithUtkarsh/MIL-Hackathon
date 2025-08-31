@@ -217,6 +217,7 @@ export interface StoreState {
   loadAssets: () => void;
   loadEvents: () => void;
   loadActivities: () => void;
+  loadNetworks: () => void;
   initializeData: () => void;
 
   // Utility actions

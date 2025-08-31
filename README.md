@@ -61,6 +61,7 @@ For detailed authentication documentation, see `AUTHENTICATION.md`.
 - **Content Management**: Submit, review, and approve educational assets
 - **Event Tracking**: Ambassador event reporting with learning impact metrics
 - **Points System**: Automated points calculation and leaderboard
+- **Network Visualization**: Interactive graph showing creator-ambassador connections
 - **User Management**: Pre-configured admin users with role-based access
 - **Data Persistence**: LocalStorage-based with import/export functionality
 - **Dark Mode**: System-aware theme switching
@@ -225,6 +226,14 @@ For detailed authentication documentation, see `AUTHENTICATION.md`.
 - [ ] Settings changes affect new calculations only
 - [ ] Reset demo data works
 
+#### 11. Network Visualization
+- [ ] "View Network" button opens modal
+- [ ] Canvas renders nodes and connections
+- [ ] Drag and drop functionality works
+- [ ] Node selection shows details
+- [ ] Network statistics display correctly
+- [ ] Modal closes properly
+
 ### Accessibility Checklist
 - [ ] Keyboard navigation throughout
 - [ ] Focus indicators visible
@@ -232,6 +241,34 @@ For detailed authentication documentation, see `AUTHENTICATION.md`.
 - [ ] Color contrast ≥4.5:1
 - [ ] Screen reader compatible
 - [ ] No console errors/warnings
+
+## 🌐 Network Visualization Feature
+
+The Network Visualization feature provides ambassadors with an interactive graph view of their creator connections:
+
+### Key Features
+- **Interactive Graph**: Drag and drop nodes to rearrange the network layout
+- **Real-time Statistics**: View total creators, connections, and network density
+- **Visual Effects**: Animated nodes with hover effects and glow animations
+- **Creator Details**: Click on nodes to see detailed creator information
+- **Responsive Design**: Adapts to different screen sizes with scrollable lists
+
+### How to Use
+1. Navigate to the Ambassador Dashboard
+2. Click the "🌐 View Network" button in the quick actions section
+3. Interact with the network graph:
+   - Hover over nodes to see highlighting
+   - Click and drag nodes to rearrange the layout
+   - Click on any node to view details in the side panel
+4. Use the side panel to explore network statistics and creator information
+
+### Technical Details
+- Built with HTML5 Canvas for smooth 60fps animations
+- Custom physics simulation for floating node effects
+- Integrates with existing Zustand store using `getNetworkCreators()`
+- Canvas-based rendering with efficient animation frame management
+
+For detailed documentation, see `NETWORK_FEATURE.md`.
 
 ## 🚢 Deployment (Vercel)
 
@@ -255,6 +292,7 @@ For detailed authentication documentation, see `AUTHENTICATION.md`.
 - **Forms**: React Hook Form + Zod
 - **State**: Zustand (persisted)
 - **Charts**: Recharts
+- **Network Visualization**: HTML5 Canvas with custom animations
 - **Dark Mode**: next-themes
 - **IDs**: ULID
 - **Icons**: Lucide React

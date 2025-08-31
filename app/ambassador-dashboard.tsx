@@ -6,6 +6,7 @@ import { useAuth } from "../lib/auth-context";
 import ContentReviewPopup from "../components/ContentReviewPopup";
 import InviteAmbassadorModal from "../components/InviteAmbassadorModal";
 import AddCreatorModal from "../components/AddCreatorModal";
+import NetworkGraphModal from "../components/NetworkGraphModal";
 import {
   resendInvitationAction,
   revokeInvitationAction,
@@ -40,8 +41,37 @@ export default function AmbassadorDashboardPage() {
   // State for add creator modal
   const [isAddCreatorModalOpen, setIsAddCreatorModalOpen] = useState(false);
 
+  // State for network graph modal
+  const [isNetworkModalOpen, setIsNetworkModalOpen] = useState(false);
+
   // Get pending assets for UI state
   const pendingAssets = assets.filter((asset) => asset.status === "pending");
+
+  // Synchronize auth user with store currentUser
+  useEffect(() => {
+    if (user && (!currentUser || currentUser.email !== user.email)) {
+      // Find the user in members array or create a placeholder
+      const existingMember = members.find((m) => m.email === user.email);
+      if (existingMember) {
+        setCurrentUser(existingMember);
+      } else {
+        // Create a placeholder user based on auth user
+        const placeholderUser = {
+          id: `auth-${user.id}`,
+          role: user.role as any,
+          name: user.name,
+          email: user.email,
+          handle: `@${user.email.split("@")[0]}`,
+          campus: user.country || "Unknown Campus",
+          languages: ["English"],
+          points: user.points || 0,
+          createdAt: new Date().toISOString(),
+          isActive: true,
+        };
+        setCurrentUser(placeholderUser);
+      }
+    }
+  }, [user, currentUser, members, setCurrentUser]);
 
   // Initialize data from database and refresh dashboard stats when component mounts
   useEffect(() => {
@@ -99,6 +129,22 @@ export default function AmbassadorDashboardPage() {
 
   const handleOpenAddCreator = () => {
     setIsAddCreatorModalOpen(true);
+  };
+
+  const handleOpenNetwork = () => {
+    // Debug logging for network data
+    if (process.env.NODE_ENV === "development") {
+      console.log("🌐 Opening Network Modal - Debug Info:");
+      console.log("Current User:", currentUser);
+      console.log("Auth User:", user);
+      console.log("All Networks:", networks);
+      console.log("Network Creators:", getNetworkCreators());
+      console.log(
+        "All Members:",
+        members.filter((m) => m.role === "creator"),
+      );
+    }
+    setIsNetworkModalOpen(true);
   };
 
   const handleAddCreatorSuccess = () => {
@@ -423,8 +469,11 @@ export default function AmbassadorDashboardPage() {
                 >
                   👥 Add Creator
                 </button>
-                <button className="p-3 bg-gradient-to-r from-indigo-600/20 to-indigo-700/20 hover:from-indigo-600/30 hover:to-indigo-700/30 border border-indigo-500/30 text-indigo-400 rounded-lg transition-all duration-200 text-sm font-medium">
-                  📊 View Reports
+                <button
+                  onClick={handleOpenNetwork}
+                  className="p-3 bg-gradient-to-r from-indigo-600/20 to-indigo-700/20 hover:from-indigo-600/30 hover:to-indigo-700/30 border border-indigo-500/30 text-indigo-400 rounded-lg transition-all duration-200 text-sm font-medium"
+                >
+                  🌐 View Network
                 </button>
                 <button className="p-3 bg-gradient-to-r from-purple-600/20 to-purple-700/20 hover:from-purple-600/30 hover:to-purple-700/30 border border-purple-500/30 text-purple-400 rounded-lg transition-all duration-200 text-sm font-medium">
                   ⚙️ Settings
@@ -456,6 +505,20 @@ export default function AmbassadorDashboardPage() {
         isOpen={isAddCreatorModalOpen}
         onClose={() => setIsAddCreatorModalOpen(false)}
         onSuccess={handleAddCreatorSuccess}
+      />
+
+      {/* Network Graph Modal */}
+      <NetworkGraphModal
+        isOpen={isNetworkModalOpen}
+        onClose={() => setIsNetworkModalOpen(false)}
+        ambassadorId={currentUser?.id || ""}
+        ambassadorName={currentUser?.name || "Ambassador"}
+        creators={getNetworkCreators().map((creator) => ({
+          id: creator.id,
+          name: creator.name,
+          handle: creator.handle,
+          campus: creator.campus,
+        }))}
       />
     </div>
   );
