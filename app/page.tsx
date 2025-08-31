@@ -201,7 +201,7 @@ export default function Home() {
       </section>
 
       {/* Mission Section */}
-      <section className="py-16 px-4 bg-black/50 relative z-20">
+      <section id="mission" className="py-16 px-4 bg-black/50 relative z-20">
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-12">
             <h2 className="text-3xl md:text-4xl font-bold text-amber-400 mb-4">
@@ -317,7 +317,10 @@ export default function Home() {
       </section>
 
       {/* What Our Community Says */}
-      <section className="py-20 px-4 bg-gradient-to-r from-purple-800 to-purple-900 relative z-20">
+      <section
+        id="reviews"
+        className="py-20 px-4 bg-gradient-to-r from-purple-800 to-purple-900 relative z-20"
+      >
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-16">
             <h2 className="text-4xl font-bold text-white mb-4 flex items-center justify-center gap-3">
