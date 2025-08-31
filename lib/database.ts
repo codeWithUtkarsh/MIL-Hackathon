@@ -1,5 +1,4 @@
-// import Database from "better-sqlite3";
-// import bcrypt from "bcryptjs";
+import Database from "better-sqlite3";
 import path from "path";
 import { ulid } from "ulid";
 import type {
@@ -95,6 +94,7 @@ export interface CreateUserData {
   email: string;
   password: string;
   country: string;
+  points: number;
   role?: "admin" | "ambassador";
 }
 
@@ -123,7 +123,7 @@ export interface CreatorWithNetwork {
 }
 
 class DatabaseManager {
-  // private db: Database.Database;
+  private db: Database.Database;
 
   constructor() {
     // Ensure data directory exists
@@ -132,10 +132,10 @@ class DatabaseManager {
       require("fs").mkdirSync(dataDir, { recursive: true });
     }
     const dbPath = path.join(dataDir, "users.db");
-    // this.db = new Database(dbPath);
-    // this.initializeDatabase();
-    // this.seedDefaultUsers();
-    // this.seedDefaultCreators();
+    this.db = new Database(dbPath);
+    this.initializeDatabase();
+    this.seedDefaultUsers();
+    this.seedDefaultCreators();
     console.log("DatabaseManager initialized (SQLite disabled)");
   }
 
@@ -359,8 +359,8 @@ class DatabaseManager {
 
           // Link first two creators to the first ambassador (if exists)
           const ambassadors = this.db
-            .prepare("SELECT * FROM users WHERE role = 'ambassador' LIMIT 1")
-            .all();
+              .prepare("SELECT * FROM users WHERE role = 'ambassador' LIMIT 1")
+              .all() as User[];
           if (
             ambassadors.length > 0 &&
             (creatorData.email === "john.doe@example.com" ||
