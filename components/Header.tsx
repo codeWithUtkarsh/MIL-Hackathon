@@ -11,7 +11,7 @@ export default function Header() {
   };
 
   return (
-    <nav className="relative z-30 flex justify-between items-center p-6 bg-gradient-to-r from-slate-900/95 to-purple-900/95 backdrop-blur-sm border-b border-amber-400/20">
+    <nav className="relative z-30 flex justify-between items-center p-6 border-b border-amber-400/20">
       <div className="flex items-center">
         <div className="w-8 h-8 bg-amber-400 rounded-full mr-3"></div>
         <Link
