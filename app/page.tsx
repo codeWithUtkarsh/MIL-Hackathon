@@ -15,6 +15,27 @@ export default function Home() {
   const [showCreatorDashboard, setShowCreatorDashboard] = useState(false);
   const { user, isAuthenticated, logout } = useAuth();
 
+  // Check for section parameter in URL to handle navigation from dashboard
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const section = urlParams.get("section");
+
+    if (section) {
+      // Reset dashboard states when navigating to a section
+      setShowAmbassadorDashboard(false);
+      setShowCreatorDashboard(false);
+
+      // Clear the URL parameter and scroll to section after a brief delay
+      setTimeout(() => {
+        window.history.replaceState({}, "", "/");
+        const element = document.getElementById(section);
+        if (element) {
+          element.scrollIntoView({ behavior: "smooth" });
+        }
+      }, 100);
+    }
+  }, []);
+
   const handleAmbassadorSignin = () => {
     setShowAmbassadorPopup(false);
     setShowAmbassadorDashboard(true);
@@ -22,7 +43,11 @@ export default function Home() {
 
   // Check if user is already authenticated and redirect to dashboard
   useEffect(() => {
-    if (isAuthenticated && user) {
+    // Only show dashboard if there's no section parameter (not navigating to a section)
+    const urlParams = new URLSearchParams(window.location.search);
+    const section = urlParams.get("section");
+
+    if (!section && isAuthenticated && user) {
       if (user.role === "admin" || user.role === "ambassador") {
         setShowAmbassadorDashboard(true);
       }

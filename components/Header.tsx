@@ -1,13 +1,19 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 
 export default function Header() {
   const pathname = usePathname();
+  const router = useRouter();
 
   const isActive = (path: string) => {
     return pathname === path;
+  };
+
+  const navigateToHomeSection = (section: string) => {
+    // Force a full page reload to reset any React state and navigate to the section
+    window.location.href = `/?section=${section}#${section}`;
   };
 
   return (
@@ -30,18 +36,18 @@ export default function Header() {
         >
           Home
         </Link>
-        <Link
-          href="/#mission"
+        <button
+          onClick={() => navigateToHomeSection("mission")}
           className="text-white hover:text-amber-400 transition-colors font-medium"
         >
           Mission
-        </Link>
-        <Link
-          href="/#reviews"
+        </button>
+        <button
+          onClick={() => navigateToHomeSection("reviews")}
           className="text-white hover:text-amber-400 transition-colors font-medium"
         >
           Reviews
-        </Link>
+        </button>
         <Link
           href="/assets"
           className={`font-medium transition-colors ${
