@@ -95,8 +95,31 @@ export interface CreateUserData {
   email: string;
   password: string;
   country: string;
+  role?: "admin" | "ambassador";
+}
+
+export interface CreateCreatorData {
+  name: string;
+  email: string;
+  password: string;
+  handle: string;
+  campus: string;
+  languages: string[];
+}
+
+export interface CreatorWithNetwork {
+  id: number;
+  name: string;
+  email: string;
+  handle: string;
+  campus: string;
+  languages: string[];
   points: number;
-  role: "admin" | "ambassador";
+  created_at: string;
+  last_login?: string;
+  is_active: boolean;
+  ambassador_id?: number;
+  ambassador_name?: string;
 }
 
 class DatabaseManager {
@@ -112,6 +135,7 @@ class DatabaseManager {
     // this.db = new Database(dbPath);
     // this.initializeDatabase();
     // this.seedDefaultUsers();
+    // this.seedDefaultCreators();
     console.log("DatabaseManager initialized (SQLite disabled)");
   }
 
@@ -145,6 +169,38 @@ class DatabaseManager {
         created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
         last_login_at DATETIME,
         is_active INTEGER DEFAULT 1
+      )
+    `);
+
+    // Create creators table
+    this.db.exec(`
+      CREATE TABLE IF NOT EXISTS creators (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        name TEXT NOT NULL,
+        email TEXT UNIQUE NOT NULL,
+        password_hash TEXT NOT NULL,
+        handle TEXT NOT NULL,
+        campus TEXT NOT NULL,
+        languages TEXT NOT NULL, -- JSON array
+        points INTEGER DEFAULT 0,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        last_login DATETIME,
+        is_active INTEGER DEFAULT 1
+      )
+    `);
+
+    // Create ambassador_creator_network table for many-to-many relationship
+    this.db.exec(`
+      CREATE TABLE IF NOT EXISTS ambassador_creator_network (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        ambassador_id INTEGER NOT NULL,
+        creator_id INTEGER NOT NULL,
+        added_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        status TEXT CHECK(status IN ('active', 'inactive')) DEFAULT 'active',
+        notes TEXT,
+        FOREIGN KEY (ambassador_id) REFERENCES users(id),
+        FOREIGN KEY (creator_id) REFERENCES creators(id),
+        UNIQUE(ambassador_id, creator_id)
       )
     `);
 
@@ -214,11 +270,15 @@ class DatabaseManager {
       CREATE INDEX IF NOT EXISTS idx_users_email ON users(email);
       CREATE INDEX IF NOT EXISTS idx_members_email ON members(email);
       CREATE INDEX IF NOT EXISTS idx_members_role ON members(role);
+      CREATE INDEX IF NOT EXISTS idx_creators_email ON creators(email);
       CREATE INDEX IF NOT EXISTS idx_assets_creator ON assets(creator_id);
       CREATE INDEX IF NOT EXISTS idx_assets_status ON assets(status);
       CREATE INDEX IF NOT EXISTS idx_events_ambassador ON events(ambassador_id);
       CREATE INDEX IF NOT EXISTS idx_activities_member ON activities(member_id);
       CREATE INDEX IF NOT EXISTS idx_activities_type ON activities(type);
+      CREATE INDEX IF NOT EXISTS idx_network_ambassador ON ambassador_creator_network(ambassador_id);
+      CREATE INDEX IF NOT EXISTS idx_network_creator ON ambassador_creator_network(creator_id);
+      CREATE INDEX IF NOT EXISTS idx_network_status ON ambassador_creator_network(status);
     `);
   }
 
@@ -257,6 +317,76 @@ class DatabaseManager {
     }
   }
 
+  private async seedDefaultCreators() {
+    // Check if creators already exist
+    const existingCreator = this.getCreatorByEmail("john.doe@example.com");
+    if (!existingCreator) {
+      console.log("Seeding default test creators...");
+
+      const defaultCreators = [
+        {
+          name: "John Doe",
+          email: "john.doe@example.com",
+          password: "creator123",
+          handle: "@johndoe",
+          campus: "Harvard University",
+          languages: ["English", "Spanish"],
+        },
+        {
+          name: "Jane Smith",
+          email: "jane.smith@example.com",
+          password: "creator123",
+          handle: "@janesmith",
+          campus: "MIT",
+          languages: ["English", "French"],
+        },
+        {
+          name: "Alex Johnson",
+          email: "alex.j@example.com",
+          password: "creator123",
+          handle: "@alexj",
+          campus: "Stanford University",
+          languages: ["English", "Mandarin"],
+        },
+      ];
+
+      for (const creatorData of defaultCreators) {
+        try {
+          const result = await this.createCreator(creatorData);
+          console.log(
+            `Created test creator: ${creatorData.name} (ID: ${result.id})`,
+          );
+
+          // Link first two creators to the first ambassador (if exists)
+          const ambassadors = this.db
+            .prepare("SELECT * FROM users WHERE role = 'ambassador' LIMIT 1")
+            .all();
+          if (
+            ambassadors.length > 0 &&
+            (creatorData.email === "john.doe@example.com" ||
+              creatorData.email === "jane.smith@example.com")
+          ) {
+            this.addCreatorToAmbassadorNetwork(
+              ambassadors[0].id,
+              result.id,
+              "Test network connection",
+            );
+            console.log(
+              `Linked ${creatorData.name} to ambassador ${ambassadors[0].name}`,
+            );
+          }
+        } catch (error) {
+          console.error(
+            `Error creating test creator ${creatorData.name}:`,
+            error,
+          );
+        }
+      }
+
+      console.log("Default test creators created successfully!");
+    }
+  }
+
   async createUser(userData: CreateUserData): Promise<User> {
     // const hashedPassword = await bcrypt.hash(userData.password, 10);
     console.log("createUser called (SQLite disabled)");
@@ -280,7 +410,9 @@ class DatabaseManager {
     const user = this.getUserByEmail(email);
     if (!user) return null;
 
-    const isValid = await bcrypt.compare(password, user.password_hash);
+    // For demo purposes, using simple comparison (in production, use bcrypt on server)
+    const hashedInput = Buffer.from(password).toString("base64");
+    const isValid = hashedInput === user.password_hash;
     if (!isValid) return null;
 
     // Update last login
@@ -728,8 +860,153 @@ class DatabaseManager {
       description: dbActivity.description,
       status: dbActivity.status as Activity["status"],
       timestamp: dbActivity.timestamp,
-      relatedId: dbActivity.related_id,
+      relatedId: dbActivity.related_id || undefined,
     };
+  }
+
+  // Creator-specific methods
+  async createCreator(
+    data: CreateCreatorData,
+  ): Promise<{ id: number; email: string }> {
+    // For demo purposes, using simple hash (in production, use bcrypt on server)
+    const hashedPassword = Buffer.from(data.password).toString("base64");
+    const stmt = this.db.prepare(
+      `INSERT INTO creators (name, email, password_hash, handle, campus, languages)
+       VALUES (?, ?, ?, ?, ?, ?)`,
+    );
+    const result = stmt.run(
+      data.name,
+      data.email,
+      hashedPassword,
+      data.handle,
+      data.campus,
+      JSON.stringify(data.languages),
+    );
+    return { id: result.lastInsertRowid as number, email: data.email };
+  }
+
+  getCreatorByEmail(email: string): any {
+    const stmt = this.db.prepare("SELECT * FROM creators WHERE email = ?");
+    return stmt.get(email);
+  }
+
+  getCreatorById(id: number): any {
+    const stmt = this.db.prepare("SELECT * FROM creators WHERE id = ?");
+    return stmt.get(id);
+  }
+
+  async validateCreatorPassword(
+    email: string,
+    password: string,
+  ): Promise<boolean> {
+    const creator = this.getCreatorByEmail(email);
+    if (!creator) return false;
+
+    try {
+      // For demo purposes, using simple comparison (in production, use bcrypt on server)
+      const hashedInput = Buffer.from(password).toString("base64");
+      return hashedInput === creator.password_hash;
+    } catch (error) {
+      console.error("Password validation error:", error);
+      return false;
+    }
+  }
+
+  updateCreatorLastLogin(id: number): void {
+    const stmt = this.db.prepare(
+      "UPDATE creators SET last_login = CURRENT_TIMESTAMP WHERE id = ?",
+    );
+    stmt.run(id);
+  }
+
+  // Network relationship methods
+  addCreatorToAmbassadorNetwork(
+    ambassadorId: number,
+    creatorId: number,
+    notes?: string,
+  ): void {
+    const stmt = this.db.prepare(
+      `INSERT OR REPLACE INTO ambassador_creator_network (ambassador_id, creator_id, notes, status)
+       VALUES (?, ?, ?, 'active')`,
+    );
+    stmt.run(ambassadorId, creatorId, notes || null);
+  }
+
+  removeCreatorFromNetwork(ambassadorId: number, creatorId: number): void {
+    const stmt = this.db.prepare(
+      `UPDATE ambassador_creator_network
+       SET status = 'inactive'
+       WHERE ambassador_id = ? AND creator_id = ?`,
+    );
+    stmt.run(ambassadorId, creatorId);
+  }
+
+  getCreatorsByAmbassador(ambassadorId: number): CreatorWithNetwork[] {
+    const stmt = this.db.prepare(`
+      SELECT c.*, acn.ambassador_id, u.name as ambassador_name
+      FROM creators c
+      INNER JOIN ambassador_creator_network acn ON c.id = acn.creator_id
+      LEFT JOIN users u ON acn.ambassador_id = u.id
+      WHERE acn.ambassador_id = ? AND acn.status = 'active'
+    `);
+
+    const rows = stmt.all(ambassadorId) as any[];
+    return rows.map((row) => ({
+      id: row.id,
+      name: row.name,
+      email: row.email,
+      handle: row.handle,
+      campus: row.campus,
+      languages: JSON.parse(row.languages),
+      points: row.points,
+      created_at: row.created_at,
+      last_login: row.last_login,
+      is_active: row.is_active === 1,
+      ambassador_id: row.ambassador_id,
+      ambassador_name: row.ambassador_name,
+    }));
+  }
+
+  getAmbassadorByCreator(creatorId: number): any {
+    const stmt = this.db.prepare(`
+      SELECT u.*
+      FROM users u
+      INNER JOIN ambassador_creator_network acn ON u.id = acn.ambassador_id
+      WHERE acn.creator_id = ? AND acn.status = 'active'
+      LIMIT 1
+    `);
+    return stmt.get(creatorId);
+  }
+
+  getAllCreators(): CreatorWithNetwork[] {
+    const stmt = this.db.prepare(`
+      SELECT c.*, acn.ambassador_id, u.name as ambassador_name
+      FROM creators c
+      LEFT JOIN ambassador_creator_network acn ON c.id = acn.creator_id AND acn.status = 'active'
+      LEFT JOIN users u ON acn.ambassador_id = u.id
+      WHERE c.is_active = 1
+    `);
+
+    const rows = stmt.all() as any[];
+    return rows.map((row) => ({
+      id: row.id,
+      name: row.name,
+      email: row.email,
+      handle: row.handle,
+      campus: row.campus,
+      languages: JSON.parse(row.languages),
+      points: row.points,
+      created_at: row.created_at,
+      last_login: row.last_login,
+      is_active: row.is_active === 1,
+      ambassador_id: row.ambassador_id,
+      ambassador_name: row.ambassador_name,
+    }));
+  }
+
+  updateCreatorPoints(id: number, points: number): void {
+    const stmt = this.db.prepare("UPDATE creators SET points = ? WHERE id = ?");
+    stmt.run(points, id);
   }
 }
 

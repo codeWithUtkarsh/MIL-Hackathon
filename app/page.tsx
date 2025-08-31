@@ -2,18 +2,20 @@
 
 import { useState, useEffect } from "react";
 import AmbassadorSigninPopup from "../components/AmbassadorSigninPopup";
-import CreatorSignupPopup from "../components/CreatorSignupPopup";
+import CreatorSigninPopup from "../components/CreatorSigninPopup";
 import AmbassadorDashboardPage from "./ambassador-dashboard";
 import CreatorDashboardPage from "./creator-dashboard";
 import Header from "../components/Header";
 import { useAuth } from "../lib/auth-context";
+import { getCreatorAuthService } from "../lib/creator-auth-service";
 
 export default function Home() {
   const [showAmbassadorPopup, setShowAmbassadorPopup] = useState(false);
-  const [showCreatorPopup, setShowCreatorPopup] = useState(false);
+  const [showCreatorSigninPopup, setShowCreatorSigninPopup] = useState(false);
   const [showAmbassadorDashboard, setShowAmbassadorDashboard] = useState(false);
   const [showCreatorDashboard, setShowCreatorDashboard] = useState(false);
   const { user, isAuthenticated, logout } = useAuth();
+  const creatorAuthService = getCreatorAuthService();
 
   // Check for section or view parameter in URL to handle navigation from dashboard
   useEffect(() => {
@@ -44,6 +46,11 @@ export default function Home() {
     setShowAmbassadorDashboard(true);
   };
 
+  const handleCreatorSignin = () => {
+    setShowCreatorSigninPopup(false);
+    setShowCreatorDashboard(true);
+  };
+
   // Check if user is already authenticated and redirect to dashboard
   useEffect(() => {
     // Only show dashboard if there's no section or view parameter (not navigating to a specific view)
@@ -51,17 +58,19 @@ export default function Home() {
     const section = urlParams.get("section");
     const view = urlParams.get("view");
 
-    if (!section && view !== "home" && isAuthenticated && user) {
-      if (user.role === "admin" || user.role === "ambassador") {
-        setShowAmbassadorDashboard(true);
+    if (!section && view !== "home") {
+      // Check for ambassador/admin authentication
+      if (isAuthenticated && user) {
+        if (user.role === "admin" || user.role === "ambassador") {
+          setShowAmbassadorDashboard(true);
+        }
+      }
+      // Check for creator authentication
+      else if (creatorAuthService.isAuthenticated()) {
+        setShowCreatorDashboard(true);
       }
     }
-  }, [isAuthenticated, user]);
-
-  const handleCreatorSignup = () => {
-    setShowCreatorPopup(false);
-    setShowCreatorDashboard(true);
-  };
+  }, [isAuthenticated, user, creatorAuthService]);
 
   if (showAmbassadorDashboard) {
     return <AmbassadorDashboardPage />;
@@ -201,23 +210,24 @@ export default function Home() {
                   className="group relative px-8 py-4 bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-500 hover:to-purple-600 text-white font-bold rounded-xl transition-all duration-300 transform hover:scale-105 hover:shadow-xl hover:shadow-purple-500/25 min-w-[280px]"
                 >
                   <div className="absolute inset-0 bg-purple-400 opacity-0 group-hover:opacity-20 transition-opacity duration-300"></div>
-                  <span className="relative flex items-center gap-2">
+                  <span className="relative flex items-center gap-2 justify-center">
                     🎓 Ambassador Sign In
                   </span>
                 </button>
                 <button
-                  onClick={() => setShowCreatorPopup(true)}
-                  className="group px-8 py-4 bg-gradient-to-r from-amber-500 to-yellow-500 text-slate-900 font-bold rounded-lg shadow-2xl hover:shadow-amber-500/25 transition-all duration-300 transform hover:scale-105 min-w-[280px]"
+                  onClick={() => setShowCreatorSigninPopup(true)}
+                  className="group relative px-8 py-4 bg-gradient-to-r from-amber-600 to-amber-700 hover:from-amber-500 hover:to-amber-600 text-white font-bold rounded-xl transition-all duration-300 transform hover:scale-105 hover:shadow-xl hover:shadow-amber-500/25 min-w-[280px]"
                 >
-                  <span className="flex items-center gap-2">
-                    ✍️ Creator Sign Up
+                  <div className="absolute inset-0 bg-amber-400 opacity-0 group-hover:opacity-20 transition-opacity duration-300"></div>
+                  <span className="relative flex items-center gap-2 justify-center">
+                    ✨ Creator Sign In
                   </span>
                 </button>
               </>
             )}
           </div>
 
-          <div className="text-sm text-slate-400 mt-4">
+          <div className="text-sm text-slate-400 mt-8">
             {isAuthenticated ? (
               <>
                 Authenticated as {user?.name} • Role: {user?.role}
@@ -452,11 +462,11 @@ export default function Home() {
         onSuccess={handleAmbassadorSignin}
       />
 
-      {/* Creator Signup Popup */}
-      <CreatorSignupPopup
-        isOpen={showCreatorPopup}
-        onClose={() => setShowCreatorPopup(false)}
-        onSuccess={handleCreatorSignup}
+      {/* Creator Signin Popup */}
+      <CreatorSigninPopup
+        isOpen={showCreatorSigninPopup}
+        onClose={() => setShowCreatorSigninPopup(false)}
+        onSuccess={handleCreatorSignin}
       />
     </div>
   );

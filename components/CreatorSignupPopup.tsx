@@ -1,6 +1,8 @@
 "use client";
 
 import { useState } from "react";
+import { X } from "lucide-react";
+import { getCreatorAuthService } from "../lib/creator-auth-service";
 
 interface CreatorSignupPopupProps {
   isOpen: boolean;
@@ -22,6 +24,9 @@ export default function CreatorSignupPopup({
     institution: "",
     expertise: "",
     bio: "",
+    socialMedia: "",
+    country: "",
+    languages: "",
     agreeToTerms: false,
   });
   const [isLoading, setIsLoading] = useState(false);
@@ -43,7 +48,7 @@ export default function CreatorSignupPopup({
   const handleInputChange = (
     e: React.ChangeEvent<
       HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
-    >
+    >,
   ) => {
     const { name, value, type } = e.target;
     setFormData((prev) => ({
@@ -115,11 +120,29 @@ export default function CreatorSignupPopup({
     setError("");
 
     try {
-      // Simulate API call - replace with actual registration
-      await new Promise((resolve) => setTimeout(resolve, 2000));
+      const creatorAuthService = getCreatorAuthService();
 
-      console.log("Creator signing up:", formData);
-      onSuccess();
+      // Prepare creator data
+      const creatorData = {
+        name: `${formData.firstName} ${formData.lastName}`,
+        email: formData.email,
+        password: formData.password,
+        handle: formData.socialMedia,
+        campus: formData.country,
+        languages: formData.languages
+          .split(",")
+          .map((lang: string) => lang.trim()),
+      };
+
+      // Sign up the creator
+      const response = await creatorAuthService.signup(creatorData);
+
+      if (response.success) {
+        console.log("Creator signed up successfully:", response.user);
+        onSuccess();
+      } else {
+        setError(response.message || "Registration failed");
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Registration failed");
     } finally {
