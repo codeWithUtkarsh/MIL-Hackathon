@@ -1,15 +1,41 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import Header from "../components/Header";
+import { getCreatorAuthService } from "../lib/creator-auth-service";
 
 export default function CreatorDashboardPage() {
   const [activeTab, setActiveTab] = useState("overview");
+  const router = useRouter();
+  const creatorAuthService = getCreatorAuthService();
+  const [currentCreator, setCurrentCreator] = useState(
+    creatorAuthService.getCurrentCreator(),
+  );
+
+  useEffect(() => {
+    // Check if creator is authenticated
+    const creator = creatorAuthService.getCurrentCreator();
+    if (!creator) {
+      router.push("/");
+    } else {
+      setCurrentCreator(creator);
+    }
+  }, [router, creatorAuthService]);
+
+  const handleSignOut = () => {
+    creatorAuthService.logout();
+    router.push("/");
+  };
   const [userStats] = useState({
-    totalUploads: 24,
-    viewsThisMonth: 15420,
-    likesReceived: 1247,
-    commentsReceived: 368,
+    totalUploads: currentCreator?.points
+      ? Math.floor(currentCreator.points / 10)
+      : 0,
+    viewsThisMonth: currentCreator?.points ? currentCreator.points * 100 : 0,
+    likesReceived: currentCreator?.points ? currentCreator.points * 5 : 0,
+    commentsReceived: currentCreator?.points
+      ? Math.floor(currentCreator.points * 1.5)
+      : 0,
   });
 
   const [myContent] = useState([
@@ -125,7 +151,7 @@ export default function CreatorDashboardPage() {
       <div className="grid md:grid-cols-4 gap-6">
         <div className="p-6 bg-gradient-to-br from-slate-800/50 to-blue-800/30 rounded-xl border border-amber-400/20 hover:border-amber-400/40 transition-all duration-300 hover:scale-105">
           <div className="flex items-center justify-between mb-4">
-            <div className="text-2xl">📝</div>
+            <div className="text-3xl">📝</div>
             <div className="text-3xl font-bold text-amber-400">
               {userStats.totalUploads}
             </div>
@@ -426,6 +452,18 @@ export default function CreatorDashboardPage() {
     </div>
   );
 
+  // Show loading state while checking authentication
+  if (!currentCreator) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-blue-900 flex items-center justify-center">
+        <div className="text-center">
+          <div className="text-4xl mb-4">⏳</div>
+          <p className="text-amber-400 text-lg">Loading creator dashboard...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-blue-900 relative overflow-hidden">
       <Header />
@@ -447,6 +485,93 @@ export default function CreatorDashboardPage() {
       </div>
 
       <div className="relative z-10 container mx-auto px-4 py-8">
+        {/* Top Navigation Bar */}
+        <div className="flex justify-between items-center mb-8 bg-slate-900/50 backdrop-blur-sm rounded-lg p-4 border border-amber-400/20">
+          <div className="flex items-center gap-4">
+            <div className="w-10 h-10 bg-gradient-to-r from-amber-400 to-yellow-400 rounded-full flex items-center justify-center text-slate-900 font-bold">
+              {currentCreator?.name?.charAt(0).toUpperCase() || "C"}
+            </div>
+            <div>
+              <p className="text-amber-400 font-semibold">
+                {currentCreator?.name || "Creator"}
+              </p>
+              <p className="text-slate-400 text-sm">
+                {currentCreator?.email || "creator@example.com"}
+              </p>
+              {(currentCreator?.campus ||
+                currentCreator?.ambassador_name ||
+                currentCreator?.languages) && (
+                <div className="text-slate-400 text-xs mt-1 space-y-1">
+                  {currentCreator?.campus && <p>📍 {currentCreator.campus}</p>}
+                  {currentCreator?.languages &&
+                    currentCreator.languages.length > 0 && (
+                      <p>🌐 {currentCreator.languages.join(", ")}</p>
+                    )}
+                  {currentCreator?.ambassador_name && (
+                    <p>🎓 Ambassador: {currentCreator.ambassador_name}</p>
+                  )}
+                </div>
+              )}
+            </div>
+          </div>
+          <div className="flex items-center gap-4">
+            <div className="flex items-center gap-4">
+              {currentCreator?.handle && (
+                <div className="text-right hidden sm:block">
+                  <p className="text-slate-400 text-sm">Handle</p>
+                  <p className="text-amber-400 font-semibold">
+                    {currentCreator.handle}
+                  </p>
+                </div>
+              )}
+              <div className="text-right hidden sm:block">
+                <p className="text-slate-400 text-sm">Points</p>
+                <p className="text-amber-400 font-bold text-lg">
+                  {currentCreator?.points || 0}
+                </p>
+              </div>
+            </div>
+            <button
+              onClick={() => router.push("/?view=home")}
+              className="px-4 py-2 bg-blue-500/10 hover:bg-blue-500/20 text-blue-400 border border-blue-500/30 rounded-lg transition-all duration-200 flex items-center gap-2"
+            >
+              <svg
+                className="w-4 h-4"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"
+                />
+              </svg>
+              Home
+            </button>
+            <button
+              onClick={handleSignOut}
+              className="px-4 py-2 bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/30 rounded-lg transition-all duration-200 flex items-center gap-2"
+            >
+              <svg
+                className="w-4 h-4"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
+                />
+              </svg>
+              Sign Out
+            </button>
+          </div>
+        </div>
+
         {/* Header */}
         <div className="mb-8">
           <div className="flex items-center gap-4 mb-4">
@@ -456,7 +581,7 @@ export default function CreatorDashboardPage() {
                 Creator Dashboard
               </h1>
               <p className="text-slate-300 text-lg">
-                Welcome back, Content Creator!
+                Manage your content and track your impact
               </p>
             </div>
           </div>

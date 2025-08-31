@@ -14,8 +14,14 @@ export default function Home() {
   const [showCreatorSigninPopup, setShowCreatorSigninPopup] = useState(false);
   const [showAmbassadorDashboard, setShowAmbassadorDashboard] = useState(false);
   const [showCreatorDashboard, setShowCreatorDashboard] = useState(false);
+  const [isCreatorAuthenticated, setIsCreatorAuthenticated] = useState(false);
   const { user, isAuthenticated, logout } = useAuth();
   const creatorAuthService = getCreatorAuthService();
+
+  // Check creator authentication status
+  useEffect(() => {
+    setIsCreatorAuthenticated(creatorAuthService.isAuthenticated());
+  }, []);
 
   // Check for section or view parameter in URL to handle navigation from dashboard
   useEffect(() => {
@@ -48,6 +54,7 @@ export default function Home() {
 
   const handleCreatorSignin = () => {
     setShowCreatorSigninPopup(false);
+    setIsCreatorAuthenticated(true);
     setShowCreatorDashboard(true);
   };
 
@@ -67,6 +74,7 @@ export default function Home() {
       }
       // Check for creator authentication
       else if (creatorAuthService.isAuthenticated()) {
+        setIsCreatorAuthenticated(true);
         setShowCreatorDashboard(true);
       }
     }
@@ -203,6 +211,36 @@ export default function Home() {
                   Sign Out
                 </button>
               </div>
+            ) : isCreatorAuthenticated ? (
+              <div className="text-center">
+                <div className="text-amber-400 font-bold text-lg mb-2">
+                  Welcome back, {creatorAuthService.getCurrentCreator()?.name}!
+                </div>
+                <div className="text-slate-300 text-sm mb-4">
+                  Creator •{" "}
+                  {creatorAuthService.getCurrentCreator()?.campus ||
+                    "Independent"}{" "}
+                  • {creatorAuthService.getCurrentCreator()?.points || 0} points
+                </div>
+                <button
+                  onClick={() => setShowCreatorDashboard(true)}
+                  className="group relative px-8 py-4 bg-gradient-to-r from-amber-600 to-amber-700 hover:from-amber-500 hover:to-amber-600 text-white font-bold rounded-xl transition-all duration-300 transform hover:scale-105 hover:shadow-xl hover:shadow-amber-500/25 min-w-[280px]"
+                >
+                  <span className="relative flex items-center gap-2 justify-center">
+                    ✨ Go to Creator Dashboard
+                  </span>
+                </button>
+                <button
+                  onClick={() => {
+                    creatorAuthService.logout();
+                    setIsCreatorAuthenticated(false);
+                    setShowCreatorDashboard(false);
+                  }}
+                  className="ml-4 px-4 py-2 text-slate-400 hover:text-slate-200 transition-colors"
+                >
+                  Sign Out
+                </button>
+              </div>
             ) : (
               <>
                 <button
@@ -232,8 +270,13 @@ export default function Home() {
               <>
                 Authenticated as {user?.name} • Role: {user?.role}
               </>
+            ) : isCreatorAuthenticated ? (
+              <>
+                Authenticated as {creatorAuthService.getCurrentCreator()?.name}{" "}
+                • Role: Creator
+              </>
             ) : (
-              <>New Creator? Sign up above • Ambassador? Use demo credentials</>
+              "Join our community of educators and literacy advocates"
             )}
           </div>
         </div>

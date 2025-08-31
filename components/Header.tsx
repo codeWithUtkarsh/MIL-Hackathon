@@ -3,11 +3,15 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useAuth } from "../lib/auth-context";
+import { getCreatorAuthService } from "../lib/creator-auth-service";
 
 export default function Header() {
   const pathname = usePathname();
   const router = useRouter();
   const { user, isAuthenticated, logout } = useAuth();
+  const creatorAuthService = getCreatorAuthService();
+  const isCreatorAuthenticated = creatorAuthService.isAuthenticated();
+  const currentCreator = creatorAuthService.getCurrentCreator();
 
   const isActive = (path: string) => {
     return pathname === path;
@@ -143,18 +147,22 @@ export default function Header() {
           <span className="absolute -top-1 -right-1 h-3 w-3 bg-purple-500 rounded-full animate-ping"></span>
           <span className="absolute -top-1 -right-1 h-3 w-3 bg-purple-500 rounded-full"></span>
         </Link> */}
-        {isAuthenticated && (
+        {(isAuthenticated || isCreatorAuthenticated) && (
           <>
             <div className="w-4"></div>
             <button
               onClick={() => {
-                logout();
+                if (isAuthenticated) {
+                  logout();
+                } else if (isCreatorAuthenticated) {
+                  creatorAuthService.logout();
+                }
                 window.location.href = "/?view=home";
               }}
               className="bg-gradient-to-r from-slate-600 to-slate-700 hover:from-slate-500 hover:to-slate-600 text-white font-semibold px-6 py-2 rounded-full transition-all duration-300 transform hover:scale-105 flex items-center gap-2"
             >
               <span className="text-sm">🚪</span>
-              Sign Out
+              Sign Out ({isAuthenticated ? user?.name : currentCreator?.name})
             </button>
           </>
         )}
