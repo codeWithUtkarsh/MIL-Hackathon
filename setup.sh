@@ -9,6 +9,7 @@ mkdir -p app/review/\[assetId\]
 mkdir -p app/events/new
 mkdir -p app/events/thanks/\[eventId\]
 mkdir -p app/assets
+mkdir -p app/ambassadors
 mkdir -p app/leaderboard
 mkdir -p app/kit
 mkdir -p app/dashboard

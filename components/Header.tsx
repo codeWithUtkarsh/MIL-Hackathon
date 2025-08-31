@@ -75,12 +75,16 @@ export default function Header() {
         >
           Leaderboard
         </Link>
-        <button
-          onClick={() => (window.location.href = "/")}
-          className="font-medium transition-colors text-white hover:text-amber-400"
+        <Link
+          href="/ambassadors"
+          className={`font-medium transition-colors ${
+            isActive("/ambassadors")
+              ? "text-amber-400"
+              : "text-white hover:text-amber-400"
+          }`}
         >
           Ambassadors
-        </button>
+        </Link>
         <Link
           href="/kit"
           className="bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-black font-semibold px-6 py-2 rounded-full transition-all duration-300 transform hover:scale-105"

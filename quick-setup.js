@@ -5,8 +5,8 @@
  * This script creates a minimal but working Next.js application
  */
 
-const fs = require('fs');
-const path = require('path');
+const fs = require("fs");
+const path = require("path");
 
 // Helper to create directories recursively
 function createDir(dirPath) {
@@ -24,25 +24,28 @@ function writeFile(filePath, content) {
   console.log(`✓ Created file: ${filePath}`);
 }
 
-console.log('🚀 Setting up MIL-CAN Application\n');
+console.log("🚀 Setting up MIL-CAN Application\n");
 
 // Create all directories
 const directories = [
-  'app',
-  'app/assets',
-  'app/creator',
-  'app/creator/submit',
-  'app/leaderboard',
-  'app/kit',
-  'lib',
-  'components',
-  'public'
+  "app",
+  "app/assets",
+  "app/ambassadors",
+  "app/creator",
+  "app/creator/submit",
+  "app/leaderboard",
+  "app/kit",
+  "lib",
+  "components",
+  "public",
 ];
 
 directories.forEach(createDir);
 
 // Create app/globals.css
-writeFile('app/globals.css', `@tailwind base;
+writeFile(
+  "app/globals.css",
+  `@tailwind base;
 @tailwind components;
 @tailwind utilities;
 
@@ -98,10 +101,13 @@ writeFile('app/globals.css', `@tailwind base;
 }
 body {
   @apply bg-background text-foreground;
-}`);
+}`,
+);
 
 // Create app/layout.tsx
-writeFile('app/layout.tsx', `import type { Metadata } from 'next'
+writeFile(
+  "app/layout.tsx",
+  `import type { Metadata } from 'next'
 import { Inter } from 'next/font/google'
 import './globals.css'
 
@@ -145,10 +151,13 @@ export default function RootLayout({
       </body>
     </html>
   )
-}`);
+}`,
+);
 
 // Create app/page.tsx
-writeFile('app/page.tsx', `export default function HomePage() {
+writeFile(
+  "app/page.tsx",
+  `export default function HomePage() {
   return (
     <div className="space-y-12">
       <section className="text-center py-12">
@@ -188,10 +197,13 @@ writeFile('app/page.tsx', `export default function HomePage() {
       </section>
     </div>
   )
-}`);
+}`,
+);
 
 // Create app/assets/page.tsx
-writeFile('app/assets/page.tsx', `'use client'
+writeFile(
+  "app/assets/page.tsx",
+  `'use client'
 
 import { useState } from 'react'
 
@@ -273,10 +285,13 @@ export default function AssetsPage() {
       )}
     </div>
   )
-}`);
+}`,
+);
 
 // Create app/creator/submit/page.tsx
-writeFile('app/creator/submit/page.tsx', `'use client'
+writeFile(
+  "app/creator/submit/page.tsx",
+  `'use client'
 
 import { useState } from 'react'
 
@@ -372,10 +387,13 @@ export default function CreatorSubmitPage() {
       </form>
     </div>
   )
-}`);
+}`,
+);
 
 // Create app/leaderboard/page.tsx
-writeFile('app/leaderboard/page.tsx', `export default function LeaderboardPage() {
+writeFile(
+  "app/leaderboard/page.tsx",
+  `export default function LeaderboardPage() {
   const leaderboard = [
     { name: 'Amy Ambassador', role: 'Ambassador', points: 35 },
     { name: 'Chris Creator', role: 'Creator', points: 23 },
@@ -403,10 +421,13 @@ writeFile('app/leaderboard/page.tsx', `export default function LeaderboardPage()
       </div>
     </div>
   )
-}`);
+}`,
+);
 
 // Create app/kit/page.tsx
-writeFile('app/kit/page.tsx', `export default function KitPage() {
+writeFile(
+  "app/kit/page.tsx",
+  `export default function KitPage() {
   const resources = [
     { name: 'Presentation Slides', description: 'Ready-to-use slides for your event' },
     { name: 'Facilitator Guide', description: 'Step-by-step instructions' },
@@ -434,18 +455,22 @@ writeFile('app/kit/page.tsx', `export default function KitPage() {
       </div>
     </div>
   )
-}`);
+}`,
+);
 
 // Create lib/utils.ts
-writeFile('lib/utils.ts', `import { type ClassValue, clsx } from "clsx"
+writeFile(
+  "lib/utils.ts",
+  `import { type ClassValue, clsx } from "clsx"
 import { twMerge } from "tailwind-merge"
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
-}`);
+}`,
+);
 
-console.log('\n✅ Setup complete!');
-console.log('\nYour MIL-CAN application structure has been created.');
-console.log('\nNow run:');
-console.log('  npm run dev');
-console.log('\nThen visit http://localhost:3000');
+console.log("\n✅ Setup complete!");
+console.log("\nYour MIL-CAN application structure has been created.");
+console.log("\nNow run:");
+console.log("  npm run dev");
+console.log("\nThen visit http://localhost:3000");
